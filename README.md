@@ -9,40 +9,41 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 ## Zber požiadaviek ##
 
 ### Správa kníh ##
-- ** RQ01 ** Systém umožní pridávanie nových kníh.
-- ** RQ02 ** Systém umožní úpravu informácií o knihách.
-- ** RQ03 ** Systém zabezpečí sledovanie počtu dostupných kópií jednotlivých kníh.
-- ** RQ04 ** Systém umožní vyhľadávanie kníh podľa rôzných kritérií.
-- ** RQ05 ** Systém zabezpečí zobrazovanie aktuálneho počtu dostupných kópií.
+- **RQ01** Systém umožní pridávanie nových kníh.
+- **RQ02** Systém umožní úpravu informácií o knihách.
+- **RQ03** Systém zabezpečí sledovanie počtu dostupných kópií jednotlivých kníh.
+- **RQ04** Systém umožní vyhľadávanie kníh podľa rôzných kritérií.
+- **RQ05** Systém zabezpečí zobrazovanie aktuálneho počtu dostupných kópií.
 
 ### Výpožičky ##
-- ** RQ06 ** Systém umožní registrovaným používateľom vypožičať si dostupnú knihu.
-- ** RQ07 ** Systém zabezpečí sledovanie aktívneho členstva používateľov.
-- ** RQ08 ** Systém nastaví vypôžičnú dobu (štandardne 14 dní).
-- ** RQ09 ** Systém zabezpečí sledovanie dátumov vypožičky a vrátenia.
-- ** RQ10 ** Systém umožní predĺženie vypožičky.
-- ** RQ11 ** Systém eviduje vrátenie knihy.
+- **RQ06** Systém umožní registrovaným používateľom vypožičať si dostupnú knihu.
+- **RQ07** Systém zabezpečí sledovanie aktívneho členstva používateľov.
+- **RQ08** Systém nastaví vypôžičnú dobu (štandardne 14 dní).
+- **RQ09** Systém zabezpečí sledovanie dátumov vypožičky a vrátenia.
+- **RQ10** Systém umožní predĺženie vypožičky.
+- **RQ11** Systém eviduje vrátenie knihy.
 
 ### Rezervácie ##
-- ** RQ12 ** Systém umožní rezervovať si knihu, ktorá momentálne nie je dostupná.
-- ** RQ13 ** Systém notifikuje používateľa o dostupnosti rezervovanej knihy.
+- **RQ12** Systém umožní rezervovať si knihu, ktorá momentálne nie je dostupná.
+- **RQ13** Systém notifikuje používateľa o dostupnosti rezervovanej knihy.
 
 ### Členstvo ###
-- ** RQ14 ** Systém umožní registráciu nových členov.
-- ** RQ15 ** Systém zabezpečí sledovanie typu členstva (študent, dospelý, senior).
-- ** RQ16 ** Systém zabezpeči sledovanie plastnosti členstva.
-- ** RQ17 ** Systém zabezpečí upozornenie používateľa o blížiacom sa konci členstva.
-- ** RQ18 ** Systém zabezpečí blokovanie vypožičiek od používateľov s neplatným členstvom.
+- **RQ14** Systém umožní registráciu nových členov.
+- **RQ15** Systém zabezpečí sledovanie typu členstva (študent, dospelý, senior).
+- **RQ16** Systém zabezpeči sledovanie plastnosti členstva.
+- **RQ17** Systém zabezpečí upozornenie používateľa o blížiacom sa konci členstva.
+- **RQ18** Systém zabezpečí blokovanie vypožičiek od používateľov s neplatným členstvom.
 
 ### Pokuty a poplatky ###
-- ** RQ19 ** Systém zabezpeči pokutovanie za omeškanie doby vrátenia knihy.
-- ** RQ22 ** Systém zabezpečí blokovanie vypožičiek od používateľov s neuhradenými pokutami.
+- **RQ19** Systém zabezpeči pokutovanie za omeškanie doby vrátenia knihy.
+- **RQ22** Systém zabezpečí blokovanie vypožičiek od používateľov s neuhradenými pokutami.
 
 ### Administrácia ###
-- ** RQ23 ** Systém musí mať rôzne používateľské role.
+- **RQ23** Systém musí mať rôzne používateľské role.
 
 ## Slovník pojmov ##
 | **Pojem** | **Anglický názov** | **Definícia** |
+|-----------|----------------|-------------|
 | **Kniha** | Book | Fyzická alebo digitálna publikácia dostupná v knižnici. |
 | **Člen** | Member | Registrovaný používateľ knižnice s aktívnym členstvom. |
 | **Členstvo** | Membership | Časovo obmedzené oprávnenie na využívanie služieb knižnice. |
