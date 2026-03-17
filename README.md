@@ -55,124 +55,153 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 | **Rezervácia** | Rezervácia | Požiadavka člena na budúcu výpožičku momentálne nedostupnej knihy. |
 | **Pokuta** | Fine | Finančná sankcia za neskoré vrátenie knihy alebo poškodenie. |
   
-## Use-Case Analýza ##
-### UC01 ###
-**Účel** 
-Systém umožní používateľom nájsť knihu v katalógu.
-**Používateľ**
- čítateľ, knihovník, administrátor
-**Vstupné podmienky** 
+## Use-Case Analýza
+
+---
+
+**UC01**
+
+**Účel** Systém umožní používateľom nájsť knihu v katalógu.
+**Používateľ** čítateľ, knihovník, administrátor
+**Vstupné podmienky**
 - Používateľ je prihlásený do systému.
+
 **Výstup**
 - Zoznam kníh zodpovedajúci vyhľadácim kritériam.
 - Informácie o dostupnosti vyhľadávaných kníh.
+
 **Postup**
 1. Používateľ zadá vyhľadávacie kritérium.
 2. Systém vyhľadá knihy zodpovedajúce kritériu v systéme.
 3. Systém zobrazí zoznam kníh a ich dostupnosť.
 
-### UC02 ###
-**Účel**
-Systém umožní knihovníkovi vytvoriť výpožičku pre čítateľa.
-**Používateľ**
-Knihovník
-**Vstupné podmienky** 
+---
+
+**UC02**
+
+**Účel** Systém umožní knihovníkovi vytvoriť výpožičku pre čítateľa.
+**Používateľ** Knihovník
+**Vstupné podmienky**
 - Knihovník je prihlásený v systéme.
 - Člen prišiel do knižnice s knihami, ktoré si chce vypožičať.
+
 **Výstup**
 - Vytvorená vypožička.
 - Znížený počet dostupných kníh.
+
 **Postup**
 1. Knihovník vyhľadá člena v systéme.
 2. Systém zobrazí informácie o čítateľovi.
 3. Knihovník zadá ISBN kníh.
-4. Systém validuje business pravidlá (platné členstvo, počet pokút).     
-5. Systém vytvorí vypožičkú s dátumom.
+4. Systém validuje business pravidlá (platné členstvo, počet pokút).
+5. Systém vytvorí vypožičku s dátumom.
 
-### UC03 ###
-**Účel**
-Systém umožní knihovníkovi zaznamenať vrátenie vypožičanej knihy.
-**Používateľ**
-Knihovník
-**Vstupné podmienky** 
+---
+
+**UC03**
+
+**Účel** Systém umožní knihovníkovi zaznamenať vrátenie vypožičanej knihy.
+**Používateľ** Knihovník
+**Vstupné podmienky**
 - Knihovník je prihlásený v systéme.
-- Člen prišiel do vrátiť knihu do knižnice.
+- Člen prišiel vrátiť knihu do knižnice.
 - Existuje aktívna vypožička pre danú knihu.
+
 **Výstup**
-- Zmenený stav vypožičky, s dátumom vrátenia.
+- Zmenený stav vypožičky s dátumom vrátenia.
 - Zvýšený počet dostupných kníh.
 - Notifikovaný člen s rezerváciou.
+
 **Postup**
 1. Knihovník vyhľadá člena v systéme.
 2. Systém zobrazí informácie o čítateľovi a aktuálne vypožičky.
 3. Knihovník v systéme zaeviduje vrátenie kníh a zmenu stavu.
 
-### UC04 ###
-**Účel**
-Systém umožní čítateľovi zobraziť svoje aktívne vypožičky.
-**Používateľ**
-Čítateľ
-**Vstupné podmienky** 
-- Čítateľ je prihlásený.
-**Výstup**
-- Zoznam aktualných vypožičiek.
-**Postup**
-1. Čítateľ zvolí v systéme "moje vypožičky".
-2. Systém zobrazí zoznam aktuálných vypožičiek a ich stavu.
+---
 
-### UC05 ###
-**Účel**
-Systém umožní čítateľovi rezervovať si aktuálne nedostupnú knihu.
-**Používateľ**
-Čítateľ
-**Vstupné podmienky** 
-- Čitateľ je prihlásený v systéme.
-- Čitateľ ma aktívne členstvo.
-- Zobrazené knihy su momentálne nedostupné.
+**UC04**
+
+**Účel** Systém umožní čítateľovi zobraziť svoje aktívne vypožičky.
+**Používateľ** Čítateľ
+**Vstupné podmienky**
+- Čítateľ je prihlásený.
+
+**Výstup**
+- Zoznam aktuálnych vypožičiek.
+
+**Postup**
+1. Čítateľ zvolí v systéme „Moje vypožičky".
+2. Systém zobrazí zoznam aktuálnych vypožičiek a ich stavu.
+
+---
+
+**UC05**
+
+**Účel** Systém umožní čítateľovi rezervovať si aktuálne nedostupnú knihu.
+**Používateľ** Čítateľ
+**Vstupné podmienky**
+- Čítateľ je prihlásený v systéme.
+- Čítateľ má aktívne členstvo.
+- Zobrazené knihy sú momentálne nedostupné.
+
 **Výstup**
 - Vytvorená rezervácia.
+
 **Postup**
 1. Čítateľ vyhľadá v systéme knihu.
 2. Systém zobrazí knihu ako nedostupnú.
-3. Čitateľ zvolí tlačidlo rezervovať.
-4. Systém vytvorí rezerváciu.     
+3. Čítateľ zvolí tlačidlo „Rezervovať".
+4. Systém vytvorí rezerváciu.
 5. Systém uloží rezerváciu.
 
-### UC06 ###
-**Účel**
-Systém umožní čitateľovi zobraziť svoje rezervácie.
-**Používateľ**
-Čítateľ
-**Vstupné podmienky** 
+---
+
+**UC06**
+
+**Účel** Systém umožní čítateľovi zobraziť svoje rezervácie.
+**Používateľ** Čítateľ
+**Vstupné podmienky**
 - Čítateľ je prihlásený v systéme.
+
 **Výstup**
 - Zobrazený zoznam aktuálnych rezervácií.
+
 **Postup**
-1. Čítateľ klikne na "Moje rezervácie".
+1. Čítateľ klikne na „Moje rezervácie".
 2. Systém načíta zoznam rezervácií.
 
-### UC07 ###
-**Účel**
-Systém umožní čitateľovi zrušenie rezervácie.
-**Používateľ**
-Čítateľ
-**Vstupné podmienky** 
+---
+
+**UC07**
+
+**Účel** Systém umožní čítateľovi zrušenie rezervácie.
+**Používateľ** Čítateľ
+**Vstupné podmienky**
 - Čítateľ je prihlásený v systéme.
+
 **Výstup**
 - Zrušená zvolená rezervácia.
+
 **Postup**
-1. Čítateľ klikne na "Moje rezervácie".
+1. Čítateľ klikne na „Moje rezervácie".
 2. Systém načíta zoznam rezervácií.
-3. Čítateľ zvolí "Zrušiť rezerváciu".
+3. Čítateľ zvolí „Zrušiť rezerváciu".
 4. Systém zruší rezerváciu.
 
-### UC08 ###
-**Účel**
-Systém umožní čitateľovi predlžíť výpožičku.
-### UC09 ###
-**Účel**
-Systém umožní čitateľovi zrušiť rezerváciu
-### UC10 ###
-**Účel**
-Systém umožní čitateľovi obnoviť vypršané alebo exspirujúce členstvo 
+---
 
+**UC08**
+
+**Účel** Systém umožní čítateľovi predĺžiť výpožičku.
+
+---
+
+**UC09**
+
+**Účel** Systém umožní čítateľovi zrušiť rezerváciu.
+
+---
+
+**UC10**
+
+**Účel** Systém umožní čítateľovi obnoviť vypršané alebo expirujúce členstvo
