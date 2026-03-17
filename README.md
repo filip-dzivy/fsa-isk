@@ -166,7 +166,13 @@ Systém umožní čitateľovi zrušenie rezervácie.
 3. Čítateľ zvolí "Zrušiť rezerváciu".
 4. Systém zruší rezerváciu.
 
-
-
-
+### UC08 ###
+** Účel **
+Systém umožní čitateľovi predlžíť výpožičku.
+### UC09 ###
+** Účel **
+Systém umožní čitateľovi zrušiť rezerváciu
+### UC10 ###
+** Účel **
+Systém umožní čitateľovi obnoviť vypršané alebo exspirujúce členstvo 
 
