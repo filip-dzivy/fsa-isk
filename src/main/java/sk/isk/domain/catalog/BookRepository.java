@@ -1,4 +1,3 @@
-// src/main/java/sk/librasys/domain/catalog/BookRepository.java
 package sk.isk.domain.catalog;
 
 import java.util.List;

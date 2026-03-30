@@ -1,7 +1,7 @@
 // src/main/java/sk/librasys/domain/membership/UserRole.java
 package sk.isk.domain.membership;
 
-public enum UserRole {
+public enum MemberRole {
     MEMBER,
     LIBRARIAN,
     ADMIN
