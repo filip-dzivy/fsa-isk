@@ -25,6 +25,7 @@ public class Member {
         this.lastName = lastName;
         this.memberRole = role;
         this.fines = new ArrayList<>();
+        validateForCreation();
     }
 
     public void addFine(Fine fine){

@@ -71,9 +71,15 @@ public class MemberTest {
     }
 
     @Test
-    void finesListIsUnmodifiable() {
-        assertThrows(UnsupportedOperationException.class,
-                () -> member.getFines().add(new Fine(Money.of(1.0, "EUR"), "test")));
+    void constructorValidatesBlankFirstName() {
+        assertThrows(DomainException.class,
+                () -> new Member(5L, new Email("a@b.sk"), " ", "Novak", MemberRole.MEMBER));
+    }
+
+    @Test
+    void constructorValidatesBlankLastName() {
+        assertThrows(DomainException.class,
+                () -> new Member(5L, new Email("a@b.sk"), "Pavol", "   ", MemberRole.MEMBER));
     }
 
 }

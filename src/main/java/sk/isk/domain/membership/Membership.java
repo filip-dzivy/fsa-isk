@@ -41,4 +41,6 @@ public final class Membership {
     public boolean isActive() {
         return status == MembershipStatus.ACTIVE;
     }
+    public LocalDate getExpiryDate () {return expiryDate;}
+    public MembershipStatus getStatus() {return status;}
 }

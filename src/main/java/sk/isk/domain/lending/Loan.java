@@ -1,12 +1,12 @@
 package sk.isk.domain.lending;
 
 import sk.isk.domain.catalog.ISBN;
-import sk.isk.domain.lending.predicate.IsCreatedByLibrarianPredicate;
-import sk.isk.domain.lending.predicate.IsOwnedByMemberPredicate;
+import sk.isk.domain.lending.predicate.*;
 import sk.isk.domain.membership.Member;
 import sk.isk.domain.shared.DomainException;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class Loan {
     private static final int LOAN_DURATION = 14;
@@ -49,6 +49,46 @@ public class Loan {
                 "ISBN knihy je povinný údaj.");
     }
 
+    public void returnBook(){
+        require(status != LoanStatus.RETURNED,
+                DomainException.Type.CONFLICT,
+                "Vypožička " + id + "je už vrátená.");
+        this.returnDate = LocalDate.now();
+        this.status = LoanStatus.RETURNED;
+    }
+
+    public void renew(){
+        require(IsActiveLoanPredicate.INSTANCE.test(this),
+                DomainException.Type.CONFLICT,
+                "Predlžiť je možné len aktívnu výpožičku.");
+        require(IsNotOverdueLoanPredicate.INSTANCE.test(this),
+                DomainException.Type.CONFLICT,
+                "Vypožičku po termíne vrátenia nie je možné predĺžiť.");
+        require(HasRenewalCapacityPredicate.INSTANCE.test(this),
+                DomainException.Type.CONFLICT,
+                "Vypožičku viackrát už nie je možné predĺžiť.");
+        this.dueDate = dueDate.plusDays(LOAN_DURATION);
+        this.renewalCount++;
+    }
+
+    public boolean isOverdue() {
+        if (status == LoanStatus.RETURNED) return false;
+        LocalDate checkDate = (returnDate != null) ? returnDate : LocalDate.now();
+        return checkDate.isAfter(dueDate);
+    }
+
+    public void markOverdue(){
+        if(status == LoanStatus.ACTIVE && isOverdue()){
+            this.status = LoanStatus.OVERDUE;
+        }
+    }
+
+    public long daysOverdue() {
+        if (!isOverdue() && returnDate == null) return 0;
+        LocalDate checkDate = (returnDate != null) ? returnDate : LocalDate.now();
+        return Math.max(0, ChronoUnit.DAYS.between(dueDate, checkDate));
+    }
+
     private void require(boolean valid, DomainException.Type type, String message) {
         if (!valid) throw new DomainException(type, message);
     }
@@ -69,9 +109,8 @@ public class Loan {
         return status;
     }
 
-    public boolean isOverdue() {
-        if (status == LoanStatus.RETURNED) return false;
-        LocalDate checkDate = (returnDate != null) ? returnDate : LocalDate.now();
-        return checkDate.isAfter(dueDate);
-    }
+    public LocalDate getDueDate(){return dueDate;}
+
+    public LocalDate getReturnDate() {return returnDate;}
+
 }
