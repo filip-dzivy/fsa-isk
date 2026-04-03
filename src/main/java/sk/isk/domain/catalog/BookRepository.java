@@ -1,23 +1,23 @@
 package sk.isk.domain.catalog;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface BookRepository {
 
-    Optional<Book> findByIsbn(ISBN isbn);
+    Optional<Book> find(ISBN isbn);
 
-    List<Book> findByTitle(String title);
+    Optional<Book> findByTitle(String title);
 
-    List<Book> findByAuthor(String author);
+    Collection<Book> findByAuthor(String author);
 
-    List<Book> findByGenre(String genre);
+    Collection<Book> findByGenre(String genre);
 
-    List<Book> findAll();
+    Collection<Book> findAll();
 
-    Book save(Book book);
+    void save(Book book);
 
     void delete(Book book);
 
-    boolean existsByIsbn(ISBN isbn);
 }

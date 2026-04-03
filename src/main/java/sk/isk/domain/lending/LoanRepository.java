@@ -1,21 +1,24 @@
 package sk.isk.domain.lending;
 
+import sk.isk.domain.catalog.Book;
 import sk.isk.domain.catalog.ISBN;
+import sk.isk.domain.membership.Member;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface LoanRepository {
 
-    Optional<Loan> findById(long loanId);
+    Optional<Loan> find(long id);
 
-    List<Loan> findByMemberId(long memberId);
+    Collection<Loan> findByMember(Member member);
 
-    List<Loan> findActiveByIsbn(ISBN isbn);
+    Collection<Loan> findByBook(Book book);
 
-    List<Loan> findOverdueLoans();
+    Collection<Loan> findAll();
 
-    List<Loan> findAll();
+    Collection<Loan> findOverdueLoans();
 
-    Loan save(Loan loan);
+    void save(Loan loan);
 }

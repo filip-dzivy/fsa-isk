@@ -1,5 +1,6 @@
 package sk.isk.domain.lending;
 
+import sk.isk.domain.catalog.Book;
 import sk.isk.domain.catalog.ISBN;
 import sk.isk.domain.lending.predicate.*;
 import sk.isk.domain.membership.Member;
@@ -13,7 +14,7 @@ public class Loan {
     private static final int MAX_RENEWALS = 1;
     private long id;
     private Member loanedTo;
-    private ISBN bookIsbn;
+    private Book book;
     private Member createdBy;
     private LocalDate loanDate;
     private LocalDate dueDate;
@@ -23,9 +24,9 @@ public class Loan {
 
     public Loan() {}
 
-    public Loan(Member loanedTo, ISBN bookIsbn, Member createdBy, LocalDate loanDate, int durationDays) {
+    public Loan(Member loanedTo, Book book, Member createdBy, LocalDate loanDate, int durationDays) {
         this.loanedTo = loanedTo;
-        this.bookIsbn = bookIsbn;
+        this.book = book;
         this.createdBy = createdBy;
         this.loanDate = loanDate;
         this.dueDate = loanDate.plusDays(durationDays);
@@ -33,8 +34,8 @@ public class Loan {
         this.status = LoanStatus.ACTIVE;
     }
 
-    public Loan(Member loanedTo, ISBN bookIsbn, Member createdBy) {
-        this(loanedTo, bookIsbn, createdBy, LocalDate.now(), LOAN_DURATION);
+    public Loan(Member loanedTo, Book book, Member createdBy) {
+        this(loanedTo, book, createdBy, LocalDate.now(), LOAN_DURATION);
     }
 
     public void validateForCreation() {
@@ -44,9 +45,9 @@ public class Loan {
         require(IsCreatedByLibrarianPredicate.INSTANCE.test(this),
                 DomainException.Type.VALIDATION,
                 "Výpožičku musí vytvoriť knihovník.");
-        require(bookIsbn != null,
+        require(book != null,
                 DomainException.Type.VALIDATION,
-                "ISBN knihy je povinný údaj.");
+                "Kniha je povinný údaj.");
     }
 
     public void returnBook(){
@@ -113,4 +114,7 @@ public class Loan {
 
     public LocalDate getReturnDate() {return returnDate;}
 
+    public long getId() {return id;}
+
+    public Book getBook() {return book;}
 }

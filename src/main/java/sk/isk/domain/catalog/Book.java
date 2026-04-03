@@ -73,6 +73,8 @@ public class Book {
         return totalCopies;
     }
 
+    public ISBN getIsbn() {return isbn;}
+
     public void validateForCreation() {
         require(HasRequiredISBNPredicate.INSTANCE.test(isbn),
                 DomainException.Type.VALIDATION,

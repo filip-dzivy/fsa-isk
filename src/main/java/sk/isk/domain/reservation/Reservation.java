@@ -50,7 +50,7 @@ public class Reservation {
         require(status == ReservationStatus.PENDING,
                 DomainException.Type.CONFLICT,
                 "Aktivovať možno len čakajúcu rezerváciu.");
-        this.status     = ReservationStatus.READY_FOR_PICKUP;
+        this.status = ReservationStatus.READY_FOR_PICKUP;
     }
 
     public void cancel() {
@@ -75,13 +75,28 @@ public class Reservation {
         this.status = ReservationStatus.FULFILLED;
     }
 
+    public boolean isExpiredByDate() {
+        return IsReadyForPickupPredicate.INSTANCE.test(this)
+                && LocalDate.now().isAfter(createdOn.plusDays(PICKUP_WINDOW_DAYS));
+    }
+
     public boolean isActive() {
         return status == ReservationStatus.PENDING
                 || status == ReservationStatus.READY_FOR_PICKUP;
     }
 
+    public long getId() {return id;}
+    public Book getBook() {return book;}
     public ReservationStatus getStatus() {return status;}
     public int getPositionInQueue() {return positionInQueue;}
+    public Member getCreatedBy() {return createdBy;}
+
+    public void setPositionInQueue(int position) {
+        require(position >= 0,
+                DomainException.Type.VALIDATION,
+                "Pozícia vo fronte nesmie byť záporná.");
+        this.positionInQueue = position;
+    }
 
     private void require(boolean valid, DomainException.Type type, String message) {
         if (!valid) throw new DomainException(type, message);

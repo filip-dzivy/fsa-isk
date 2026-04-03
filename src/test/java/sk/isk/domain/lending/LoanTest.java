@@ -2,6 +2,8 @@ package sk.isk.domain.lending;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sk.isk.domain.catalog.Book;
+import sk.isk.domain.catalog.BookGenre;
 import sk.isk.domain.catalog.ISBN;
 import sk.isk.domain.membership.Email;
 import sk.isk.domain.membership.Member;
@@ -9,6 +11,7 @@ import sk.isk.domain.membership.MemberRole;
 import sk.isk.domain.shared.DomainException;
 
 import java.time.LocalDate;
+import java.time.Year;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +19,7 @@ public class LoanTest {
 
     private Member loanedTo;
     private Member createdBy;
-    private ISBN isbn;
+    private Book book;
     private LoanFactory factory;
     private Loan loanNotOverdue;
     private Loan loanOverdue;
@@ -25,10 +28,10 @@ public class LoanTest {
     void setUp(){
         loanedTo =  new Member(1L, new Email("jan.novak@example.sk"), "Jan", "Novak", MemberRole.MEMBER);
         createdBy =  new Member(2L, new Email("jan.horak@example.sk"), "Jan", "Horak", MemberRole.LIBRARIAN);
-        isbn = new ISBN("9780306406157");
+        book = new Book(new ISBN("9780306406157"), "Clean Code", "Robert C. Martin", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008),3);
         factory = new LoanFactory();
-        loanNotOverdue = factory.createLoan(loanedTo, isbn, createdBy);
-        loanOverdue = factory.createLoan(loanedTo, isbn, createdBy, LocalDate.now().minusDays(20), 14);
+        loanNotOverdue = factory.createLoan(loanedTo, book, createdBy);
+        loanOverdue = factory.createLoan(loanedTo, book, createdBy, LocalDate.now().minusDays(20), 14);
     }
 
     @Test
@@ -79,7 +82,7 @@ public class LoanTest {
 
     @Test
     void notOverdueWhenReturnedOnTime() {
-        Loan loan1 = factory.createLoan(loanedTo, isbn, createdBy, LocalDate.now().minusDays(10), 14);
+        Loan loan1 = factory.createLoan(loanedTo, book, createdBy, LocalDate.now().minusDays(10), 14);
         loan1.returnBook();
         assertFalse(loan1.isOverdue());
         assertEquals(0, loan1.daysOverdue());

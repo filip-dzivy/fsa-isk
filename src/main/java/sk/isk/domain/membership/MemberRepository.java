@@ -2,18 +2,19 @@
 package sk.isk.domain.membership;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 public interface MemberRepository {
 
-    Optional<Member> findById(long id);
+    Optional<Member> find(long id);
 
-    Optional<Member> findByEmail(Email email);
+    Optional<Member> find(Email email);
 
-    List<Member> findAll();
+    Collection<Member> findAll();
 
-    Member save(Member member);
+    void save(Member member);
 
     void delete(long id);
 }
