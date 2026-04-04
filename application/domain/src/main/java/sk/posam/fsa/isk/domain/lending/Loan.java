@@ -115,6 +115,8 @@ public class Loan {
 
     public LocalDate getReturnDate() {return returnDate;}
 
+    public LocalDate getLoanDate() {return loanDate;}
+
     public long getId() {return id;}
 
     public Book getBook() {return book;}

@@ -1,0 +1,18 @@
+name: fsa-isk
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: isk
+    volumes:
+      - isk_db_disk:/var/lib/postgresql/data
+
+volumes:
+  fsa_db_disk:
+    driver: local

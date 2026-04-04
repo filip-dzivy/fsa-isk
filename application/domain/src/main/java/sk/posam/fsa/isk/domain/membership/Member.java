@@ -82,6 +82,12 @@ public class Member {
         return memberRole;
     }
 
+    public String getFirstName () {return firstName;}
+
+    public String getLastName () {return lastName;}
+
+    public Email getEmail () {return email;}
+
     public String getFullName() {return firstName + " " + lastName;}
 
     public void validateForCreation() {

@@ -20,5 +20,9 @@
 	</properties>
 	<modules>
 		<module>application/domain</module>
+		<module>application/api-spec</module>
+		<module>application/inbound-controller-rest</module>
+		<module>application/springboot</module>
+		<module>application/outbound-repository-jpa</module>
 	</modules>
 </project>

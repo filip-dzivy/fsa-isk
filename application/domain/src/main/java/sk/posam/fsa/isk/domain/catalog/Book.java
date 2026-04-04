@@ -66,6 +66,16 @@ public class Book {
         return availableCopies > 0;
     }
 
+    public String getTitle() {return title;}
+
+    public String getAuthor() {return author;}
+
+    public BookGenre getGenre() {return genre;}
+
+    public String getPublisher() {return publisher;}
+
+    public Year getPublicationYear() {return publicationYear;}
+
     public int getAvailableCopies() {
         return availableCopies;
     }

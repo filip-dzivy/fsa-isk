@@ -1,0 +1,872 @@
+openapi: 3.0.0
+info:
+  title: Informačný systém knižnice (ISK)
+  version: 1.0.0
+  description: API pre správu knižničného systému – katalóg kníh, výpožičky, rezervácie a členstvá.
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Book
+    description: Správa kníh v katalógu
+  - name: Member
+    description: Správa členov knižnice
+  - name: Loan
+    description: Správa výpožičiek
+  - name: Reservation
+    description: Správa rezervácií
+
+paths:
+
+  # ─── CATALOG ──────────────────────────────────────────────────────────────
+
+  /books:
+    get:
+      summary: Získanie zoznamu všetkých kníh
+      operationId: getAllBooks
+      tags:
+        - Book
+      parameters:
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: genre
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/BookGenre'
+      responses:
+        '200':
+          description: Zoznam kníh
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Pridanie novej knihy do katalógu
+      operationId: createBook
+      tags:
+        - Book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookRequest'
+      responses:
+        '201':
+          description: Kniha úspešne pridaná
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /books/{isbn}:
+    get:
+      summary: Získanie knihy podľa ISBN
+      operationId: getBookByIsbn
+      tags:
+        - Book
+      parameters:
+        - name: isbn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detail knihy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ─── MEMBERS ──────────────────────────────────────────────────────────────
+
+  /members:
+    get:
+      summary: Získanie zoznamu všetkých členov
+      operationId: getAllMembers
+      tags:
+        - Member
+      responses:
+        '200':
+          description: Zoznam členov
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Member'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Vytvorenie nového člena
+      operationId: createMember
+      tags:
+        - Member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMemberRequest'
+      responses:
+        '201':
+          description: Člen úspešne vytvorený
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /members/{id}:
+    get:
+      summary: Získanie člena podľa ID
+      operationId: getMemberById
+      tags:
+        - Member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Detail člena
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /members/{id}/membership/renew:
+    post:
+      summary: Obnovenie členstva
+      operationId: renewMembership
+      tags:
+        - Member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Členstvo úspešne obnovené
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /members/{id}/fines/{fineId}/pay:
+    post:
+      summary: Zaplatenie pokuty
+      operationId: payFine
+      tags:
+        - Member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: fineId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Pokuta úspešne zaplatená
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /members/{id}/fines/{fineId}/waive:
+    post:
+      summary: Odpustenie pokuty
+      operationId: waiveFine
+      tags:
+        - Member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: fineId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Pokuta úspešne odpustená
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ─── LOANS ────────────────────────────────────────────────────────────────
+
+  /loans:
+    get:
+      summary: Získanie zoznamu výpožičiek
+      operationId: getAllLoans
+      tags:
+        - Loan
+      parameters:
+        - name: memberId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Zoznam výpožičiek
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Loan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Vytvorenie novej výpožičky
+      operationId: createLoan
+      tags:
+        - Loan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLoanRequest'
+      responses:
+        '201':
+          description: Výpožička úspešne vytvorená
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /loans/overdue:
+    get:
+      summary: Získanie zoznamu po termíne výpožičiek
+      operationId: getOverdueLoans
+      tags:
+        - Loan
+      responses:
+        '200':
+          description: Zoznam po termíne výpožičiek
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Loan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /loans/{id}/return:
+    post:
+      summary: Vrátenie vypožičanej knihy
+      operationId: returnLoan
+      tags:
+        - Loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Kniha úspešne vrátená
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /loans/{id}/renew:
+    post:
+      summary: Predĺženie výpožičky
+      operationId: renewLoan
+      tags:
+        - Loan
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Výpožička úspešne predĺžená
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ─── RESERVATIONS ─────────────────────────────────────────────────────────
+
+  /reservations:
+    get:
+      summary: Získanie zoznamu rezervácií
+      operationId: getAllReservations
+      tags:
+        - Reservation
+      parameters:
+        - name: memberId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Zoznam rezervácií
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Reservation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      summary: Vytvorenie novej rezervácie
+      operationId: createReservation
+      tags:
+        - Reservation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservationRequest'
+      responses:
+        '201':
+          description: Rezervácia úspešne vytvorená
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /reservations/{id}/cancel:
+    post:
+      summary: Zrušenie rezervácie
+      operationId: cancelReservation
+      tags:
+        - Reservation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Rezervácia úspešne zrušená
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+
+    # ─── SHARED ─────────────────────────────────────────────────────────────
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+
+    Money:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+          example: EUR
+
+    # ─── BOOK ───────────────────────────────────────────────────────────────
+
+    Book:
+      type: object
+      properties:
+        isbn:
+          type: string
+          description: ISBN-10 alebo ISBN-13 identifikátor knihy.
+          readOnly: true
+        title:
+          type: string
+        author:
+          type: string
+        genre:
+          $ref: '#/components/schemas/BookGenre'
+        publisher:
+          type: string
+        publicationYear:
+          type: integer
+        totalCopies:
+          type: integer
+        availableCopies:
+          type: integer
+          readOnly: true
+
+    CreateBookRequest:
+      type: object
+      required:
+        - isbn
+        - title
+        - author
+        - genre
+        - publisher
+        - publicationYear
+        - totalCopies
+      properties:
+        isbn:
+          type: string
+          minLength: 1
+          pattern: "^.*\\S.*$"
+        title:
+          type: string
+          minLength: 1
+          pattern: "^.*\\S.*$"
+        author:
+          type: string
+          minLength: 1
+          pattern: "^.*\\S.*$"
+        genre:
+          $ref: '#/components/schemas/BookGenre'
+        publisher:
+          type: string
+          minLength: 1
+          pattern: "^.*\\S.*$"
+        publicationYear:
+          type: integer
+          minimum: 1
+        totalCopies:
+          type: integer
+          minimum: 1
+
+    BookGenre:
+      type: string
+      enum:
+        - FICTION
+        - SCIENCE_FICTION
+        - FANTASY
+        - MYSTERY
+        - THRILLER
+        - HORROR
+        - ROMANCE
+        - HISTORICAL_FICTION
+        - ADVENTURE
+        - NOVEL
+        - BIOGRAPHY
+        - AUTOBIOGRAPHY
+        - HISTORY
+        - SCIENCE
+        - TECHNOLOGY
+        - PHILOSOPHY
+        - PSYCHOLOGY
+        - SELF_HELP
+        - BUSINESS
+        - POLITICS
+        - TRUE_CRIME
+        - POETRY
+        - DRAMA
+        - CHILDREN
+        - YOUNG_ADULT
+        - REFERENCE
+        - TRAVEL
+        - COOKBOOK
+        - ART
+        - RELIGION
+        - LANGUAGE
+        - OTHER
+
+    # ─── MEMBER ─────────────────────────────────────────────────────────────
+
+    Member:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        memberRole:
+          $ref: '#/components/schemas/MemberRole'
+        membership:
+          $ref: '#/components/schemas/Membership'
+        fines:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/Fine'
+
+    CreateMemberRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - memberRole
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          pattern: "^.*\\S.*$"
+        lastName:
+          type: string
+          minLength: 1
+          pattern: "^.*\\S.*$"
+        email:
+          type: string
+          format: email
+        memberRole:
+          $ref: '#/components/schemas/MemberRole'
+
+    Membership:
+      type: object
+      properties:
+        expiryDate:
+          type: string
+          format: date
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/MembershipStatus'
+
+    Fine:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        amount:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: string
+        status:
+          $ref: '#/components/schemas/FineStatus'
+
+    MemberRole:
+      type: string
+      enum:
+        - MEMBER
+        - LIBRARIAN
+        - ADMIN
+
+    MembershipStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - EXPIRED
+        - SUSPENDED
+
+    FineStatus:
+      type: string
+      enum:
+        - PENDING
+        - PAID
+        - WAIVED
+
+    # ─── LOAN ───────────────────────────────────────────────────────────────
+
+    Loan:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        loanedTo:
+          $ref: '#/components/schemas/Member'
+        book:
+          $ref: '#/components/schemas/Book'
+        createdBy:
+          $ref: '#/components/schemas/Member'
+        loanDate:
+          type: string
+          format: date
+          readOnly: true
+        dueDate:
+          type: string
+          format: date
+          readOnly: true
+        returnDate:
+          type: string
+          format: date
+          readOnly: true
+          nullable: true
+        renewalCount:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/LoanStatus'
+
+    CreateLoanRequest:
+      type: object
+      required:
+        - memberId
+        - isbn
+        - createdById
+      properties:
+        memberId:
+          type: integer
+          format: int64
+          description: ID člena, ktorému sa vystavuje výpožička.
+        isbn:
+          type: string
+          description: ISBN vypožičiavanej knihy.
+        createdById:
+          type: integer
+          format: int64
+          description: ID knihovníka, ktorý výpožičku vytvára.
+
+    LoanStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - RETURNED
+        - OVERDUE
+
+    # ─── RESERVATION ────────────────────────────────────────────────────────
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        createdBy:
+          $ref: '#/components/schemas/Member'
+        book:
+          $ref: '#/components/schemas/Book'
+        createdOn:
+          type: string
+          format: date
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/ReservationStatus'
+        positionInQueue:
+          type: integer
+          readOnly: true
+
+    CreateReservationRequest:
+      type: object
+      required:
+        - memberId
+        - isbn
+      properties:
+        memberId:
+          type: integer
+          format: int64
+          description: ID člena, ktorý rezerváciu vytvára.
+        isbn:
+          type: string
+          description: ISBN rezervovanej knihy.
+
+    ReservationStatus:
+      type: string
+      enum:
+        - PENDING
+        - READY_FOR_PICKUP
+        - FULFILLED
+        - CANCELLED
+        - EXPIRED
