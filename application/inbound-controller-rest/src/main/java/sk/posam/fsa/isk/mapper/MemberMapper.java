@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.isk.domain.membership.Member;
+import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.rest.dto.MemberDto;
 import sk.posam.fsa.isk.rest.dto.MemberRoleDto;
 

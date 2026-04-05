@@ -12,8 +12,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    mapping-resources:
+      - persistence/isk-orm.xml
   liquibase:
-    change-log: classpath:db/changelog-master.xml
+    change-log: classpath:persistence/db/changelog/changelog-master.xml
 
 management:
   endpoint:

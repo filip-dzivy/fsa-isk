@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.isk.domain.membership.Fine;
+import sk.posam.fsa.isk.domain.member.Fine;
 import sk.posam.fsa.isk.rest.dto.FineDto;
 import sk.posam.fsa.isk.rest.dto.FineStatusDto;
 

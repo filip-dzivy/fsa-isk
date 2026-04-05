@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.domain.reservation.service;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
-import sk.posam.fsa.isk.domain.membership.Member;
+import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
 
 import java.util.List;

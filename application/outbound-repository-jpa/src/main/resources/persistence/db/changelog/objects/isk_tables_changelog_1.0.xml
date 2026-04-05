@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="20260404_001" author="filip">
+        <comment>ISK core persistence tables</comment>
+
+        <!-- MEMBER — obsahuje aj embedded Membership -->
+        <createTable tableName="member">
+            <column name="member_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="member_pk" nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="member_nn01"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="member_nn02"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="member_uq01"/>
+            </column>
+            <column name="member_role" type="VARCHAR(50)">
+                <constraints nullable="false" notNullConstraintName="member_nn03"/>
+            </column>
+            <!-- embedded Membership -->
+            <column name="expiry_date" type="DATE"/>
+            <column name="membership_status" type="VARCHAR(50)"/>
+        </createTable>
+
+        <!-- FINE — element collection, viazaná na member -->
+        <createTable tableName="fine">
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="fine_nn01"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false" notNullConstraintName="fine_nn02"/>
+            </column>
+            <column name="currency" type="VARCHAR(10)">
+                <constraints nullable="false" notNullConstraintName="fine_nn03"/>
+            </column>
+            <column name="reason" type="VARCHAR(500)"/>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false" notNullConstraintName="fine_nn04"/>
+            </column>
+        </createTable>
+
+        <!-- BOOK -->
+        <createTable tableName="book">
+            <column name="book_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="book_pk" nullable="false"/>
+            </column>
+            <column name="isbn" type="VARCHAR(20)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="book_uq01"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="book_nn01"/>
+            </column>
+            <column name="author" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="book_nn02"/>
+            </column>
+            <column name="genre" type="VARCHAR(100)">
+                <constraints nullable="false" notNullConstraintName="book_nn03"/>
+            </column>
+            <column name="publisher" type="VARCHAR(255)">
+                <constraints nullable="false" notNullConstraintName="book_nn04"/>
+            </column>
+            <column name="publication_year" type="INTEGER">
+                <constraints nullable="false" notNullConstraintName="book_nn05"/>
+            </column>
+            <column name="total_copies" type="INTEGER">
+                <constraints nullable="false" notNullConstraintName="book_nn06"/>
+            </column>
+            <column name="available_copies" type="INTEGER">
+                <constraints nullable="false" notNullConstraintName="book_nn07"/>
+            </column>
+        </createTable>
+
+        <!-- RESERVATION -->
+        <createTable tableName="reservation">
+            <column name="reservation_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="reservation_pk" nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="reservation_nn01"/>
+            </column>
+            <column name="isbn" type="VARCHAR(20)">
+                <constraints nullable="false" notNullConstraintName="reservation_nn02"/>
+            </column>
+            <column name="created_on" type="DATE">
+                <constraints nullable="false" notNullConstraintName="reservation_nn03"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false" notNullConstraintName="reservation_nn04"/>
+            </column>
+            <column name="position_in_queue" type="INTEGER"/>
+        </createTable>
+
+        <!-- LOAN -->
+        <createTable tableName="loan">
+            <column name="loan_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="loan_pk" nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="loan_nn01"/>
+            </column>
+            <column name="isbn" type="VARCHAR(20)">
+                <constraints nullable="false" notNullConstraintName="loan_nn02"/>
+            </column>
+            <column name="created_by_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="loan_nn03"/>
+            </column>
+            <column name="loan_date" type="DATE">
+                <constraints nullable="false" notNullConstraintName="loan_nn04"/>
+            </column>
+            <column name="due_date" type="DATE">
+                <constraints nullable="false" notNullConstraintName="loan_nn05"/>
+            </column>
+            <column name="return_date" type="DATE"/>
+            <column name="renewal_count" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false" notNullConstraintName="loan_nn06"/>
+            </column>
+        </createTable>
+
+        <!-- FOREIGN KEYS -->
+        <addForeignKeyConstraint constraintName="fine_fk01"
+                                 baseTableName="fine" baseColumnNames="member_id"
+                                 referencedTableName="member" referencedColumnNames="member_id"/>
+
+        <addForeignKeyConstraint constraintName="reservation_fk01"
+                                 baseTableName="reservation" baseColumnNames="member_id"
+                                 referencedTableName="member" referencedColumnNames="member_id"/>
+
+        <addForeignKeyConstraint constraintName="reservation_fk02"
+                                 baseTableName="reservation" baseColumnNames="isbn"
+                                 referencedTableName="book" referencedColumnNames="isbn"/>
+
+        <addForeignKeyConstraint constraintName="loan_fk01"
+                                 baseTableName="loan" baseColumnNames="member_id"
+                                 referencedTableName="member" referencedColumnNames="member_id"/>
+
+        <addForeignKeyConstraint constraintName="loan_fk02"
+                                 baseTableName="loan" baseColumnNames="isbn"
+                                 referencedTableName="book" referencedColumnNames="isbn"/>
+
+        <addForeignKeyConstraint constraintName="loan_fk03"
+                                 baseTableName="loan" baseColumnNames="created_by_id"
+                                 referencedTableName="member" referencedColumnNames="member_id"/>
+
+    </changeSet>
+
+</databaseChangeLog>

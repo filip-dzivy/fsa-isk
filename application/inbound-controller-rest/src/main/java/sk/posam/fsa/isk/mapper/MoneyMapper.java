@@ -1,10 +1,8 @@
 package sk.posam.fsa.isk.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.isk.domain.membership.Money;
+import sk.posam.fsa.isk.domain.member.Money;
 import sk.posam.fsa.isk.rest.dto.MoneyDto;
-
-import java.math.BigDecimal;
 
 @Component
 public class MoneyMapper {

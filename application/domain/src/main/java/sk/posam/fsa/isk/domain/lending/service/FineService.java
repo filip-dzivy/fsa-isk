@@ -1,8 +1,8 @@
 package sk.posam.fsa.isk.domain.lending.service;
 
 import sk.posam.fsa.isk.domain.lending.Loan;
-import sk.posam.fsa.isk.domain.membership.Fine;
-import sk.posam.fsa.isk.domain.membership.Money;
+import sk.posam.fsa.isk.domain.member.Fine;
+import sk.posam.fsa.isk.domain.member.Money;
 
 import java.math.BigDecimal;
 

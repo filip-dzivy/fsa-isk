@@ -8,7 +8,8 @@ import java.util.Objects;
 
 public class Book {
 
-    private final ISBN isbn;
+    private Long id;
+    private ISBN isbn;
     private String title;
     private String author;
     private BookGenre genre;
@@ -18,7 +19,7 @@ public class Book {
     private int availableCopies;
 
     //JPA
-    public Book(){this.isbn = null;}
+    public Book(){}
 
     public Book(
             ISBN isbn,
@@ -83,6 +84,8 @@ public class Book {
     public int getTotalCopies(){
         return totalCopies;
     }
+
+    public Long getId() {return id;}
 
     public ISBN getIsbn() {return isbn;}
 

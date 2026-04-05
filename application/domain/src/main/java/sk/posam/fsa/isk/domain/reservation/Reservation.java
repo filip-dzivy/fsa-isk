@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.domain.reservation;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
-import sk.posam.fsa.isk.domain.membership.Member;
+import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.reservation.predicate.IsCancellableReservationPredicate;
 import sk.posam.fsa.isk.domain.reservation.predicate.IsReadyForPickupPredicate;
 import sk.posam.fsa.isk.domain.shared.DomainException;
@@ -93,6 +93,9 @@ public class Reservation {
     public ReservationStatus getStatus() {return status;}
     public int getPositionInQueue() {return positionInQueue;}
     public Member getCreatedBy() {return createdBy;}
+
+    public void setCreatedBy(Member createdBy) { this.createdBy = createdBy; }
+    public void setBook(Book book) { this.book = book; }
 
     public void setPositionInQueue(int position) {
         require(position >= 0,

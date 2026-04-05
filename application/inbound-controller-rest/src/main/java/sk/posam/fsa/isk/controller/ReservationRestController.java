@@ -2,12 +2,13 @@ package sk.posam.fsa.isk.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
-import sk.posam.fsa.isk.domain.membership.Member;
-import sk.posam.fsa.isk.domain.membership.MemberRepository;
+import sk.posam.fsa.isk.domain.member.Member;
+import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationFacade;
@@ -48,6 +49,7 @@ public class ReservationRestController implements ReservationsApi {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> createReservation(CreateReservationRequestDto dto) {
         Member member = memberRepository.find(dto.getMemberId())
                 .orElseThrow(() -> new RuntimeException("Member not found"));

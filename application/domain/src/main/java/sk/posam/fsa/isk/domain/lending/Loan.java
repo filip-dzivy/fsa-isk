@@ -2,8 +2,7 @@ package sk.posam.fsa.isk.domain.lending;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.lending.predicate.*;
-import sk.posam.fsa.isk.domain.lending.predicate.*;
-import sk.posam.fsa.isk.domain.membership.Member;
+import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.time.LocalDate;
@@ -120,6 +119,12 @@ public class Loan {
     public long getId() {return id;}
 
     public Book getBook() {return book;}
+
+    public void setLoanedTo(Member loanedTo) { this.loanedTo = loanedTo; }
+
+    public void setCreatedBy(Member createdBy) { this.createdBy = createdBy; }
+
+    public void setBook(Book book) { this.book = book; }
 
     @Override
     public boolean equals(Object o) {

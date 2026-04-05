@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings
+        xmlns="https://jakarta.ee/xml/ns/persistence/orm"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        https://jakarta.ee/xml/ns/persistence/orm
+        https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd"
+        version="3.0">
+
+    <!-- BOOK -->
+    <entity class="sk.posam.fsa.isk.domain.catalog.Book" access="FIELD">
+        <table name="book"/>
+        <attributes>
+            <id name="id">
+                <column name="book_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="isbn">
+                <column name="isbn" nullable="false" unique="true"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.ISBNConverter"/>
+            </basic>
+            <basic name="title">
+                <column name="title" nullable="false"/>
+            </basic>
+            <basic name="author">
+                <column name="author" nullable="false"/>
+            </basic>
+            <basic name="genre">
+                <column name="genre" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.BookGenreConverter"/>
+            </basic>
+            <basic name="publisher">
+                <column name="publisher" nullable="false"/>
+            </basic>
+            <basic name="publicationYear">
+                <column name="publication_year" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.YearConverter"/>
+            </basic>
+            <basic name="totalCopies">
+                <column name="total_copies" nullable="false"/>
+            </basic>
+            <basic name="availableCopies">
+                <column name="available_copies" nullable="false"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <!-- MEMBER -->
+    <entity class="sk.posam.fsa.isk.domain.member.Member" access="FIELD">
+        <table name="member"/>
+        <attributes>
+            <id name="id">
+                <column name="member_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="firstName">
+                <column name="first_name" nullable="false"/>
+            </basic>
+            <basic name="lastName">
+                <column name="last_name" nullable="false"/>
+            </basic>
+            <basic name="email">
+                <column name="email" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.EmailConverter"/>
+            </basic>
+            <basic name="memberRole">
+                <column name="member_role" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.MemberRoleConverter"/>
+            </basic>
+            <embedded name="membership"/>
+            <element-collection name="fines">
+                <collection-table name="fine">
+                    <join-column name="member_id"/>
+                </collection-table>
+            </element-collection>
+        </attributes>
+    </entity>
+
+    <!-- MEMBERSHIP embeddable -->
+    <embeddable class="sk.posam.fsa.isk.domain.member.Membership" access="FIELD">
+        <attributes>
+            <transient name="id"/>
+            <basic name="expiryDate">
+                <column name="expiry_date"/>
+            </basic>
+            <basic name="status">
+                <column name="membership_status"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.MembershipStatusConverter"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <!-- FINE embeddable -->
+    <embeddable class="sk.posam.fsa.isk.domain.member.Fine" access="FIELD">
+        <attributes>
+            <basic name="reason">
+                <column name="reason"/>
+            </basic>
+            <basic name="status">
+                <column name="status" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.FineStatusConverter"/>
+            </basic>
+            <embedded name="amount"/>
+        </attributes>
+    </embeddable>
+
+    <!-- MONEY embeddable -->
+    <embeddable class="sk.posam.fsa.isk.domain.member.Money" access="FIELD">
+        <attributes>
+            <basic name="amount">
+                <column name="amount" nullable="false"/>
+            </basic>
+            <basic name="currency">
+                <column name="currency" nullable="false"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <!-- RESERVATION -->
+    <entity class="sk.posam.fsa.isk.domain.reservation.Reservation" access="FIELD">
+        <table name="reservation"/>
+        <attributes>
+            <id name="id">
+                <column name="reservation_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="createdOn">
+                <column name="created_on" nullable="false"/>
+            </basic>
+            <basic name="status">
+                <column name="status" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.ReservationStatusConverter"/>
+            </basic>
+            <basic name="positionInQueue">
+                <column name="position_in_queue"/>
+            </basic>
+            <many-to-one name="createdBy"
+                         target-entity="sk.posam.fsa.isk.domain.member.Member">
+                <join-column name="member_id" nullable="false"/>
+            </many-to-one>
+            <many-to-one name="book"
+                         target-entity="sk.posam.fsa.isk.domain.catalog.Book">
+                <join-column name="isbn" nullable="false" referenced-column-name="isbn"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+
+    <!-- LOAN -->
+    <entity class="sk.posam.fsa.isk.domain.lending.Loan" access="FIELD">
+        <table name="loan"/>
+        <attributes>
+            <id name="id">
+                <column name="loan_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="loanDate">
+                <column name="loan_date" nullable="false"/>
+            </basic>
+            <basic name="dueDate">
+                <column name="due_date" nullable="false"/>
+            </basic>
+            <basic name="returnDate">
+                <column name="return_date"/>
+            </basic>
+            <basic name="renewalCount">
+                <column name="renewal_count"/>
+            </basic>
+            <basic name="status">
+                <column name="status" nullable="false"/>
+                <convert converter="sk.posam.fsa.isk.jpa.converter.LoanStatusConverter"/>
+            </basic>
+            <many-to-one name="loanedTo"
+                         target-entity="sk.posam.fsa.isk.domain.member.Member">
+                <join-column name="member_id" nullable="false"/>
+            </many-to-one>
+            <many-to-one name="book"
+                         target-entity="sk.posam.fsa.isk.domain.catalog.Book">
+                <join-column name="isbn" nullable="false" referenced-column-name="isbn"/>
+            </many-to-one>
+            <many-to-one name="createdBy"
+                         target-entity="sk.posam.fsa.isk.domain.member.Member">
+                <join-column name="created_by_id" nullable="false"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+
+</entity-mappings>

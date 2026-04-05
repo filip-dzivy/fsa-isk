@@ -7,8 +7,7 @@ import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.lending.LoanFactory;
-import sk.posam.fsa.isk.domain.membership.*;
-import sk.posam.fsa.isk.domain.membership.*;
+import sk.posam.fsa.isk.domain.member.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

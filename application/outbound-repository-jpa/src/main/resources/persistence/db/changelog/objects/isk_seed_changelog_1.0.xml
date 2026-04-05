@@ -6,9 +6,10 @@
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
-    <changeSet id="20260404_002" author="filip">
+    <changeSet id="20260405_002" author="filip">
         <validCheckSum>ANY</validCheckSum>
-        <comment>seed test data</comment>
+        <comment>extended seed data for testing</comment>
         <sqlFile path="isk_seed_changelog_1.0.sql" relativeToChangelogFile="true"/>
     </changeSet>
+
 </databaseChangeLog>

@@ -5,11 +5,11 @@ import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.lending.LoanFactory;
 import sk.posam.fsa.isk.domain.lending.LoanRepository;
-import sk.posam.fsa.isk.domain.membership.Fine;
-import sk.posam.fsa.isk.domain.membership.Member;
-import sk.posam.fsa.isk.domain.membership.MemberRepository;
-import sk.posam.fsa.isk.domain.membership.predicate.HasActiveMembershipPredicate;
-import sk.posam.fsa.isk.domain.membership.predicate.HasNoUnpaidFinesPredicate;
+import sk.posam.fsa.isk.domain.member.Fine;
+import sk.posam.fsa.isk.domain.member.Member;
+import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
+import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationService;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -56,6 +56,7 @@ public class LoanService implements LoanFacade{
         loanRepository.save(loan);
     }
 
+    @Override
     public void returnBook(Loan loan) {
         loan.returnBook();
 

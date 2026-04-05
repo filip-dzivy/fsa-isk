@@ -14,5 +14,5 @@ services:
       - isk_db_disk:/var/lib/postgresql/data
 
 volumes:
-  fsa_db_disk:
+  isk_db_disk:
     driver: local

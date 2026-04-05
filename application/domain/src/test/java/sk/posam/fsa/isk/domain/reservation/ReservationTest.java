@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
-import sk.posam.fsa.isk.domain.membership.Email;
-import sk.posam.fsa.isk.domain.membership.Member;
-import sk.posam.fsa.isk.domain.membership.MemberRole;
+import sk.posam.fsa.isk.domain.member.Email;
+import sk.posam.fsa.isk.domain.member.Member;
+import sk.posam.fsa.isk.domain.member.MemberRole;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.time.LocalDate;

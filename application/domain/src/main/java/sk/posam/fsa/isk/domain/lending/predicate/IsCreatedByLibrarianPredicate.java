@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.domain.lending.predicate;
 
 import sk.posam.fsa.isk.domain.lending.Loan;
-import sk.posam.fsa.isk.domain.membership.MemberRole;
+import sk.posam.fsa.isk.domain.member.MemberRole;
 
 import java.util.function.Predicate;
 

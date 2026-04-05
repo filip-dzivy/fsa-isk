@@ -1,9 +1,9 @@
 package sk.posam.fsa.isk.domain.reservation.service;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
-import sk.posam.fsa.isk.domain.membership.Member;
-import sk.posam.fsa.isk.domain.membership.predicate.HasActiveMembershipPredicate;
-import sk.posam.fsa.isk.domain.membership.predicate.HasNoUnpaidFinesPredicate;
+import sk.posam.fsa.isk.domain.member.Member;
+import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
+import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
 import sk.posam.fsa.isk.domain.reservation.NotificationPort;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
