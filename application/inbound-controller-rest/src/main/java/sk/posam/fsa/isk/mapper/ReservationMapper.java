@@ -25,7 +25,7 @@ public class ReservationMapper {
 
         ReservationDto dto = new ReservationDto();
         dto.setId(entity.getId());
-        dto.setCreatedBy(memberMapper.toDto(entity.getCreatedBy()));
+        dto.setCreatedBy(memberMapper.toDtoWithoutFines(entity.getCreatedBy()));
         dto.setBook(bookMapper.toDto(entity.getBook()));
         dto.setCreatedOn(entity.getCreatedOn());
         dto.setStatus(ReservationStatusDto.valueOf(entity.getStatus().name()));

@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.domain.member.service;
 
 import sk.posam.fsa.isk.domain.member.Email;
-import sk.posam.fsa.isk.domain.member.Fine;
+import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.shared.DomainException;
@@ -28,7 +28,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
-    public Member get(long id) {
+    public Member find(long id) {
         return memberRepository.find(id)
                 .orElseThrow(() -> new DomainException(
                         DomainException.Type.NOT_FOUND,
@@ -36,7 +36,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
-    public Member get(Email email) {
+    public Member find(Email email) {
         return memberRepository.find(email)
                 .orElseThrow(() -> new DomainException(
                         DomainException.Type.NOT_FOUND,
@@ -44,30 +44,40 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
-    public Collection<Member> getAll() {
+    public Collection<Member> findAll() {
         return memberRepository.findAll();
     }
 
     @Override
     public void renewMembership(long id) {
-        Member member = get(id);
+        Member member = find(id);
         member.renewMembership();
         memberRepository.save(member);
     }
 
     @Override
-    public void payFine(long memberId, long fineIndex) {
-        Member member = get(memberId);
-        Fine fine = member.getFines().get((int) fineIndex);
-        member.payFine(fine);
+    public void payFine(long memberId, long fineId) {
+        Member member = find(memberId);
+        Fine fine = member.getFines().stream()
+                .filter(f -> f.getId() == fineId)
+                .findFirst()
+                .orElseThrow(() -> new DomainException(
+                        DomainException.Type.NOT_FOUND,
+                        "Pokuta nenájdená."));
+        fine.pay();
         memberRepository.save(member);
     }
 
     @Override
-    public void waiveFine(long memberId, long fineIndex) {
-        Member member = get(memberId);
-        Fine fine = member.getFines().get((int) fineIndex);
-        member.waiveFine(fine);
+    public void waiveFine(long memberId, long fineId) {
+        Member member = find(memberId);
+        Fine fine = member.getFines().stream()
+                .filter(f -> f.getId() == fineId)
+                .findFirst()
+                .orElseThrow(() -> new DomainException(
+                        DomainException.Type.NOT_FOUND,
+                        "Pokuta nenájdená."));
+        fine.waive();
         memberRepository.save(member);
     }
 }

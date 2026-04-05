@@ -9,7 +9,7 @@
     <changeSet id="20260404_001" author="filip">
         <comment>ISK core persistence tables</comment>
 
-        <!-- MEMBER — obsahuje aj embedded Membership -->
+        <!-- MEMBER -->
         <createTable tableName="member">
             <column name="member_id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" primaryKeyName="member_pk" nullable="false"/>
@@ -26,26 +26,8 @@
             <column name="member_role" type="VARCHAR(50)">
                 <constraints nullable="false" notNullConstraintName="member_nn03"/>
             </column>
-            <!-- embedded Membership -->
             <column name="expiry_date" type="DATE"/>
             <column name="membership_status" type="VARCHAR(50)"/>
-        </createTable>
-
-        <!-- FINE — element collection, viazaná na member -->
-        <createTable tableName="fine">
-            <column name="member_id" type="BIGINT">
-                <constraints nullable="false" notNullConstraintName="fine_nn01"/>
-            </column>
-            <column name="amount" type="DECIMAL(10,2)">
-                <constraints nullable="false" notNullConstraintName="fine_nn02"/>
-            </column>
-            <column name="currency" type="VARCHAR(10)">
-                <constraints nullable="false" notNullConstraintName="fine_nn03"/>
-            </column>
-            <column name="reason" type="VARCHAR(500)"/>
-            <column name="status" type="VARCHAR(50)">
-                <constraints nullable="false" notNullConstraintName="fine_nn04"/>
-            </column>
         </createTable>
 
         <!-- BOOK -->
@@ -126,10 +108,37 @@
             </column>
         </createTable>
 
+        <!-- FINE  -->
+        <createTable tableName="fine">
+            <column name="fine_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="fine_pk" nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="fine_nn01"/>
+            </column>
+            <column name="loan_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="fine_nn02"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false" notNullConstraintName="fine_nn03"/>
+            </column>
+            <column name="currency" type="VARCHAR(10)">
+                <constraints nullable="false" notNullConstraintName="fine_nn04"/>
+            </column>
+            <column name="reason" type="VARCHAR(500)"/>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false" notNullConstraintName="fine_nn05"/>
+            </column>
+        </createTable>
+
         <!-- FOREIGN KEYS -->
         <addForeignKeyConstraint constraintName="fine_fk01"
                                  baseTableName="fine" baseColumnNames="member_id"
                                  referencedTableName="member" referencedColumnNames="member_id"/>
+
+        <addForeignKeyConstraint constraintName="fine_fk02"
+                                 baseTableName="fine" baseColumnNames="loan_id"
+                                 referencedTableName="loan" referencedColumnNames="loan_id"/>
 
         <addForeignKeyConstraint constraintName="reservation_fk01"
                                  baseTableName="reservation" baseColumnNames="member_id"

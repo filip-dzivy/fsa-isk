@@ -7,11 +7,11 @@ public interface BookRepository {
 
     Optional<Book> find(ISBN isbn);
 
-    Optional<Book> findByTitle(String title);
+    Collection<Book> findByTitle(String title);
 
     Collection<Book> findByAuthor(String author);
 
-    Collection<Book> findByGenre(String genre);
+    Collection<Book> findByGenre(BookGenre genre);
 
     Collection<Book> findAll();
 

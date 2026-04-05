@@ -1,4 +1,4 @@
-package sk.posam.fsa.isk;
+package sk.posam.fsa.isk.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,6 +1,7 @@
 package sk.posam.fsa.isk.domain.member;
 
 
+import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.member.predicate.*;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -34,22 +35,6 @@ public class Member {
                 DomainException.Type.VALIDATION,
                 "Pokuta nesmie byť null.");
         fines.add(fine);
-    }
-
-    public void payFine(Fine fine) {
-        int idx = fines.indexOf(fine);
-        require(idx != -1,
-                DomainException.Type.NOT_FOUND,
-                "Pokuta sa nenašla alebo je už uhradená.");
-        fines.set(idx, fine.pay());
-    }
-
-    public void waiveFine(Fine fine) {
-        int idx = fines.indexOf(fine);
-        require(idx != -1,
-                DomainException.Type.NOT_FOUND,
-                "Pokuta sa nenašla.");
-        fines.set(idx, fine.waive());
     }
 
     public void assignMembership(Membership membership) {

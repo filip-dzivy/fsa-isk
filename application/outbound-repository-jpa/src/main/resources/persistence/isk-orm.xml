@@ -68,18 +68,17 @@
                 <convert converter="sk.posam.fsa.isk.jpa.converter.MemberRoleConverter"/>
             </basic>
             <embedded name="membership"/>
-            <element-collection name="fines">
-                <collection-table name="fine">
-                    <join-column name="member_id"/>
-                </collection-table>
-            </element-collection>
+            <one-to-many name="fines"
+                         target-entity="sk.posam.fsa.isk.domain.finance.Fine"
+                         mapped-by="member">
+                <cascade><cascade-all/></cascade>
+            </one-to-many>
         </attributes>
     </entity>
 
     <!-- MEMBERSHIP embeddable -->
     <embeddable class="sk.posam.fsa.isk.domain.member.Membership" access="FIELD">
         <attributes>
-            <transient name="id"/>
             <basic name="expiryDate">
                 <column name="expiry_date"/>
             </basic>
@@ -90,9 +89,15 @@
         </attributes>
     </embeddable>
 
-    <!-- FINE embeddable -->
-    <embeddable class="sk.posam.fsa.isk.domain.member.Fine" access="FIELD">
+    <!--FINE-->
+
+    <entity class="sk.posam.fsa.isk.domain.finance.Fine" access="FIELD">
+        <table name="fine"/>
         <attributes>
+            <id name="id">
+                <column name="fine_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
             <basic name="reason">
                 <column name="reason"/>
             </basic>
@@ -101,11 +106,19 @@
                 <convert converter="sk.posam.fsa.isk.jpa.converter.FineStatusConverter"/>
             </basic>
             <embedded name="amount"/>
+            <many-to-one name="member"
+                         target-entity="sk.posam.fsa.isk.domain.member.Member">
+                <join-column name="member_id" nullable="false"/>
+            </many-to-one>
+            <many-to-one name="loan"
+                         target-entity="sk.posam.fsa.isk.domain.lending.Loan">
+                <join-column name="loan_id"/>
+            </many-to-one>
         </attributes>
-    </embeddable>
+    </entity>
 
     <!-- MONEY embeddable -->
-    <embeddable class="sk.posam.fsa.isk.domain.member.Money" access="FIELD">
+    <embeddable class="sk.posam.fsa.isk.domain.finance.Money" access="FIELD">
         <attributes>
             <basic name="amount">
                 <column name="amount" nullable="false"/>

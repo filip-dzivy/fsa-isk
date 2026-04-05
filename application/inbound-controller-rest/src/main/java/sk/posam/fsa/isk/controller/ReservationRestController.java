@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.catalog.service.CatalogFacade;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.member.service.MemberFacade;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationFacade;
+import sk.posam.fsa.isk.domain.shared.DomainException;
 import sk.posam.fsa.isk.mapper.ReservationMapper;
 import sk.posam.fsa.isk.rest.api.ReservationsApi;
 import sk.posam.fsa.isk.rest.dto.CreateReservationRequestDto;
@@ -24,26 +27,22 @@ import java.util.List;
 public class ReservationRestController implements ReservationsApi {
     private final ReservationFacade reservationFacade;
     private final ReservationMapper reservationMapper;
-    private final MemberRepository memberRepository;
-    private final BookRepository bookRepository;
-    private final ReservationRepository reservationRepository;
+    private final MemberFacade memberFacade;
+    private final CatalogFacade catalogFacade;
 
     public ReservationRestController(ReservationFacade reservationFacade,
                                      ReservationMapper reservationMapper,
-                                     MemberRepository memberRepository,
-                                     BookRepository bookRepository,
-                                     ReservationRepository reservationRepository) {
+                                     MemberFacade memberFacade,
+                                     CatalogFacade catalogFacade) {
         this.reservationFacade = reservationFacade;
         this.reservationMapper = reservationMapper;
-        this.memberRepository = memberRepository;
-        this.bookRepository = bookRepository;
-        this.reservationRepository = reservationRepository;
+        this.memberFacade = memberFacade;
+        this.catalogFacade = catalogFacade;
     }
 
-    @Override
+   @Override
     public ResponseEntity<Void> cancelReservation(Long id) {
-        Reservation reservation = reservationRepository.find(id)
-                .orElseThrow(() -> new RuntimeException("Reservation not found"));
+        Reservation reservation = reservationFacade.find(id);
         reservationFacade.cancel(reservation);
         return ResponseEntity.ok().build();
     }
@@ -51,11 +50,8 @@ public class ReservationRestController implements ReservationsApi {
     @Override
     @Transactional
     public ResponseEntity<Void> createReservation(CreateReservationRequestDto dto) {
-        Member member = memberRepository.find(dto.getMemberId())
-                .orElseThrow(() -> new RuntimeException("Member not found"));
-        Book book = bookRepository.find(new ISBN(dto.getIsbn()))
-                .orElseThrow(() -> new RuntimeException("Book not found"));
-
+        Member member = memberFacade.find(dto.getMemberId());
+        Book book = catalogFacade.find(new ISBN(dto.getIsbn()));
         reservationFacade.create(member, book);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -63,12 +59,11 @@ public class ReservationRestController implements ReservationsApi {
     @Override
     public ResponseEntity<List<ReservationDto>> getAllReservations(Long memberId) {
         List<Reservation> reservations;
-        if(memberId != null){
-            Member member = memberRepository.find(memberId)
-                    .orElseThrow(() -> new RuntimeException("Member not found"));
+        if (memberId != null) {
+            Member member = memberFacade.find(memberId);
             reservations = reservationFacade.findByMember(member);
         } else {
-          reservations = new ArrayList<>(reservationRepository.findAll());
+            reservations = reservationFacade.findAll();
         }
         return ResponseEntity.ok(reservationMapper.toDto(reservations));
     }

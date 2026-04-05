@@ -2,15 +2,20 @@ package sk.posam.fsa.isk.domain.lending.service;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
+import sk.posam.fsa.isk.domain.finance.FineFactory;
+import sk.posam.fsa.isk.domain.finance.FineRepository;
+import sk.posam.fsa.isk.domain.finance.Money;
+import sk.posam.fsa.isk.domain.finance.service.FineService;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.lending.LoanFactory;
 import sk.posam.fsa.isk.domain.lending.LoanRepository;
-import sk.posam.fsa.isk.domain.member.Fine;
+import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.lending.event.BookReturnedEvent;
 import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
 import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
-import sk.posam.fsa.isk.domain.reservation.service.ReservationService;
+import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.util.List;
@@ -20,21 +25,27 @@ public class LoanService implements LoanFacade{
     private final MemberRepository memberRepository;
     private final LoanRepository loanRepository;
     private final LoanFactory loanFactory;
-    private final FineService fineService;
-    private final ReservationService reservationService;
+    private final FineRepository fineRepository;
+    private final DomainEventPublisher eventPublisher;
+    private final Money finesDailyRate;
+    private final FineFactory fineFactory;
 
     public LoanService(BookRepository bookRepository,
                        MemberRepository memberRepository,
                        LoanRepository loanRepository,
                        LoanFactory loanFactory,
-                       FineService fineService,
-                       ReservationService reservationService) {
+                       FineRepository fineRepository,
+                       DomainEventPublisher eventPublisher,
+                       Money finesDailyRate,
+                       FineFactory fineFactory) {
         this.bookRepository = bookRepository;
         this.memberRepository = memberRepository;
         this.loanRepository = loanRepository;
         this.loanFactory = loanFactory;
-        this.fineService = fineService;
-        this.reservationService = reservationService;
+        this.fineRepository = fineRepository;
+        this.eventPublisher = eventPublisher;
+        this.finesDailyRate = finesDailyRate;
+        this.fineFactory = fineFactory;
     }
 
     @Override
@@ -45,7 +56,6 @@ public class LoanService implements LoanFacade{
         require(HasNoUnpaidFinesPredicate.INSTANCE.test(loanedTo),
                 DomainException.Type.FORBIDDEN,
                 "Čitateľ " + loanedTo.getId() + " má neuhradené pokuty.");
-
         require(book.isAvailable(),
                 DomainException.Type.CONFLICT,
                 "Kniha " + book.getIsbn() + " nie je momentálne dostupná.");
@@ -64,15 +74,14 @@ public class LoanService implements LoanFacade{
         book.returnCopy();
         bookRepository.save(book);
 
-        if(loan.daysOverdue() > 0) {
-            Fine fine = fineService.calculate(loan);
-            Member member = loan.getLoanedTo();
-            member.addFine(fine);
-            memberRepository.save(member);
-        }
+        fineRepository.findPendingByLoan(loan)
+                        .ifPresent(fine -> {
+                            fineFactory.updateFor(fine, loan, finesDailyRate);
+                            fineRepository.save(fine);
+                        });
 
         loanRepository.save(loan);
-        reservationService.notifyNextInQueue(book);
+        eventPublisher.publish(new BookReturnedEvent(book));
     }
 
     @Override

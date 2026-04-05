@@ -9,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.finance.Fine;
+import sk.posam.fsa.isk.domain.finance.Money;
 import sk.posam.fsa.isk.domain.member.*;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationService;
 import sk.posam.fsa.isk.domain.shared.DomainException;

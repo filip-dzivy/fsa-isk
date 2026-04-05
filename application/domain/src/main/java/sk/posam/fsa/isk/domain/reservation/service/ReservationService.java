@@ -86,6 +86,24 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    public List<Reservation> findByBook(Book book) {
+        return reservationRepository.findByBook(book).stream().toList();
+    }
+
+    @Override
+    public List<Reservation> findAll() {
+        return reservationRepository.findAll().stream().toList();
+    }
+
+    @Override
+    public Reservation find(long id){
+        return reservationRepository.find(id)
+                .orElseThrow(()->new DomainException(
+                        Type.NOT_FOUND,
+                        "Reservation not found."));
+    }
+
+    @Override
     public boolean hasPendingReservation(Book book) {
         return reservationRepository.findActiveByBook(book)
                 .stream()

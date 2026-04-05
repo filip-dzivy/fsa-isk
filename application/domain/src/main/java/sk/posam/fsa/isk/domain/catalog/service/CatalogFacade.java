@@ -14,6 +14,8 @@ public interface CatalogFacade {
 
     Collection<Book> findAll();
 
+    Collection<Book> findByTitle(String title);
+
     Collection<Book> findByAuthor(String author);
 
     Collection<Book> findByGenre(BookGenre genre);

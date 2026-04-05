@@ -2,7 +2,7 @@ package sk.posam.fsa.isk.jpa.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import sk.posam.fsa.isk.domain.member.FineStatus;
+import sk.posam.fsa.isk.domain.finance.FineStatus;
 
 @Converter
 public class FineStatusConverter implements AttributeConverter<FineStatus, String> {

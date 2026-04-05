@@ -2,6 +2,8 @@ package sk.posam.fsa.isk.domain.member;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import sk.posam.fsa.isk.domain.finance.Fine;
+import sk.posam.fsa.isk.domain.finance.Money;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,15 +49,9 @@ public class MemberTest {
     void memberCanBorrowAfterPayingFine() {
         Fine fine = new Fine(Money.of(0.50, "EUR"), "Oneskorené vrátenie o 5 dní");
         member.addFine(fine);
-        member.payFine(fine);
+        fine.pay();
         assertFalse(member.hasUnpaidFines());
         assertTrue(member.canBorrow());
-    }
-
-    @Test
-    void payingNonexistentFineThrows() {
-        Fine fine = new Fine(Money.of(2.00, "EUR"), "Iná pokuta");
-        assertThrows(DomainException.class, () -> member.payFine(fine));
     }
 
     @Test

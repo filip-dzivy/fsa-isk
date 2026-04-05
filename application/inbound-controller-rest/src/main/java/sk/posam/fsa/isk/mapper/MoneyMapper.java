@@ -1,7 +1,7 @@
 package sk.posam.fsa.isk.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.isk.domain.member.Money;
+import sk.posam.fsa.isk.domain.finance.Money;
 import sk.posam.fsa.isk.rest.dto.MoneyDto;
 
 @Component

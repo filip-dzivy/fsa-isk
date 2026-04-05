@@ -18,6 +18,12 @@ public interface ReservationFacade {
 
     public List<Reservation> findByMember(Member member);
 
+    public List<Reservation> findAll();
+
+    public List<Reservation> findByBook(Book book);
+
+    Reservation find(long id);
+
     public boolean hasPendingReservation(Book book);
 
 }

@@ -1,4 +1,4 @@
-package sk.posam.fsa.isk.domain.member;
+package sk.posam.fsa.isk.domain.finance;
 
 import org.junit.jupiter.api.Test;
 import sk.posam.fsa.isk.domain.shared.DomainException;

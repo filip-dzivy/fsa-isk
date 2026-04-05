@@ -1,4 +1,4 @@
-package sk.posam.fsa.isk.domain.member;
+package sk.posam.fsa.isk.domain.finance;
 
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -35,6 +35,10 @@ public final class Money {
     public Money add(Money other) {
         assertSameCurrency(other);
         return new Money(this.amount.add(other.amount), currency);
+    }
+
+    public Money multiply(long factor) {
+        return new Money(amount.multiply(BigDecimal.valueOf(factor)), currency);
     }
 
     public boolean isGreaterThanZero() {

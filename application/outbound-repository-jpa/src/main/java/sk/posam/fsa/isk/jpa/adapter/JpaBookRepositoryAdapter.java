@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import sk.posam.fsa.isk.domain.catalog.Book;
+import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.jpa.springrepo.BookSpringDataRepository;
@@ -28,7 +29,7 @@ public class JpaBookRepositoryAdapter implements BookRepository {
     }
 
     @Override
-    public Optional<Book> findByTitle(String title) {
+    public Collection<Book> findByTitle(String title) {
         return bookSpringDataRepository.findByTitle(title);
     }
 
@@ -38,7 +39,7 @@ public class JpaBookRepositoryAdapter implements BookRepository {
     }
 
     @Override
-    public Collection<Book> findByGenre(String genre) {
+    public Collection<Book> findByGenre(BookGenre genre) {
         return bookSpringDataRepository.findByGenre(genre);
     }
 

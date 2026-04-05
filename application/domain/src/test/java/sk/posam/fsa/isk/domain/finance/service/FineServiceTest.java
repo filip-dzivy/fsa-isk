@@ -1,10 +1,12 @@
-package sk.posam.fsa.isk.domain.lending.service;
+package sk.posam.fsa.isk.domain.finance.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.finance.Fine;
+import sk.posam.fsa.isk.domain.finance.FineStatus;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.lending.LoanFactory;
 import sk.posam.fsa.isk.domain.member.*;

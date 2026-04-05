@@ -6,6 +6,7 @@ import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
+import java.text.CollationElementIterator;
 import java.util.Collection;
 import java.util.List;
 
@@ -48,6 +49,9 @@ public class CatalogService implements CatalogFacade{
 
     @Override
     public Collection<Book> findByGenre(BookGenre genre) {
-        return bookRepository.findByGenre(genre.name());
+        return bookRepository.findByGenre(BookGenre.valueOf(genre.name()));
     }
+
+    @Override
+    public Collection<Book> findByTitle(String title) { return bookRepository.findByTitle(title);}
 }

@@ -1,6 +1,8 @@
 package sk.posam.fsa.isk.domain.lending;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
+import sk.posam.fsa.isk.domain.finance.Fine;
+import sk.posam.fsa.isk.domain.finance.Money;
 import sk.posam.fsa.isk.domain.lending.predicate.*;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.shared.DomainException;

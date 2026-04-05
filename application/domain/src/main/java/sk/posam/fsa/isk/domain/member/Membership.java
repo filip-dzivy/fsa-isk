@@ -7,7 +7,6 @@ public final class Membership {
     private static final int RENEWAL_MONTHS = 12;
     private static final int EXPIRY_WARNING_DAYS = 30;
 
-    private long id;
     private LocalDate expiryDate;
     private MembershipStatus status;
 

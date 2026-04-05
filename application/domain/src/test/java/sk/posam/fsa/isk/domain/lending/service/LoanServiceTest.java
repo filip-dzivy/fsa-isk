@@ -3,30 +3,33 @@ package sk.posam.fsa.isk.domain.lending.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.finance.Fine;
+import sk.posam.fsa.isk.domain.finance.FineFactory;
+import sk.posam.fsa.isk.domain.finance.FineRepository;
+import sk.posam.fsa.isk.domain.finance.Money;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.lending.LoanFactory;
 import sk.posam.fsa.isk.domain.lending.LoanRepository;
 import sk.posam.fsa.isk.domain.lending.LoanStatus;
+import sk.posam.fsa.isk.domain.lending.event.BookReturnedEvent;
+import sk.posam.fsa.isk.domain.lending.service.LoanService;
 import sk.posam.fsa.isk.domain.member.*;
-import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
-import sk.posam.fsa.isk.domain.reservation.service.ReservationService;
+import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoanServiceTest {
@@ -34,33 +37,35 @@ class LoanServiceTest {
     @Mock
     private BookRepository bookRepository;
     @Mock
-    private MemberRepository memberRepository;
-    @Mock
     private LoanRepository loanRepository;
     @Mock
-    private ReservationRepository reservationRepository;
-    @Mock
     private LoanFactory loanFactory;
-    @Spy
-    private FineService fineService = new FineService();
     @Mock
-    private ReservationService reservationService;
-    @InjectMocks
+    private MemberRepository memberRepository;
+    @Mock
+    private FineRepository fineRepository;
+    @Mock
+    private DomainEventPublisher eventPublisher;
+    @Mock
+    private FineFactory fineFactory;
+
     private LoanService service;
 
     private Member loanedTo;
     private Member createdBy;
     private Book book;
-    private Membership m;
 
     @BeforeEach
     void setUp() {
-        book = new Book(new ISBN("9780306406157"), "Clean Code", "Robert C. Martin", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008),3);
+        book = new Book(new ISBN("9780306406157"), "Clean Code", "Robert C. Martin",
+                BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008), 3);
         loanedTo = new Member(1L, new Email("jan.novak@example.sk"), "Jan", "Novak", MemberRole.MEMBER);
         createdBy = new Member(2L, new Email("jan.horak@example.sk"), "Jan", "Horak", MemberRole.LIBRARIAN);
+        loanedTo.assignMembership(Membership.createNew());
 
-        m = Membership.createNew();
-        loanedTo.assignMembership(m);
+        service = new LoanService(bookRepository, memberRepository, loanRepository,
+                loanFactory, fineRepository, eventPublisher,
+                Money.of(0.50, "EUR"), fineFactory);
     }
 
     // -------------------------------------------------------------------------
@@ -90,7 +95,10 @@ class LoanServiceTest {
 
     @Test
     void createLoan_unpaidFine_throws() {
-        loanedTo.addFine(new Fine(Money.of(0.50, "EUR"), "Oneskorené vrátenie"));
+        Loan overdueLoan = new LoanFactory().createLoan(loanedTo, book, createdBy,
+                LocalDate.now().minusDays(20), 14);
+        Fine fine = new Fine(Money.of(0.50, "EUR"), "Oneskorené vrátenie", overdueLoan);
+        loanedTo.addFine(fine);
 
         assertThrows(DomainException.class,
                 () -> service.create(loanedTo, book, createdBy));
@@ -100,7 +108,8 @@ class LoanServiceTest {
 
     @Test
     void createLoan_bookNotAvailable_throws() {
-        Book unavailableBook = new Book(new ISBN("9780306406157"), "Clean Code", "Robert C. Martin", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008), 1);
+        Book unavailableBook = new Book(new ISBN("9780306406157"), "Clean Code",
+                "Robert C. Martin", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008), 1);
         unavailableBook.borrowCopy();
 
         assertThrows(DomainException.class,
@@ -117,6 +126,7 @@ class LoanServiceTest {
     void returnBook_onTime_noFine() {
         book.borrowCopy();
         Loan loan = new Loan(loanedTo, book, createdBy);
+        when(fineRepository.findPendingByLoan(loan)).thenReturn(Optional.empty());
 
         service.returnBook(loan);
 
@@ -126,18 +136,24 @@ class LoanServiceTest {
         assertEquals(3, book.getAvailableCopies());
         verify(loanRepository).save(loan);
         verify(bookRepository).save(book);
+        verify(fineRepository, never()).save(any());
+        verify(eventPublisher).publish(any(BookReturnedEvent.class));
     }
 
     @Test
-    void returnBook_overdue_fineAddedToMember() {
+    void returnBook_overdue_fineUpdated() {
         book.borrowCopy();
         Loan loan = new LoanFactory().createLoan(loanedTo, book, createdBy,
                 LocalDate.now().minusDays(20), 14);
 
+        Fine existingFine = new Fine(Money.of(1.00, "EUR"), "Oneskorené vrátenie", loan);
+        when(fineRepository.findPendingByLoan(loan)).thenReturn(Optional.of(existingFine));
+
         service.returnBook(loan);
 
-        assertEquals(1, loanedTo.getFines().size());
-        assertEquals(Money.of(3.00, "EUR"), loanedTo.getFines().getFirst().getAmount());
+        verify(fineFactory).updateFor(existingFine, loan, Money.of(0.50, "EUR"));
+        verify(fineRepository).save(existingFine);
+        verify(eventPublisher).publish(any(BookReturnedEvent.class));
     }
 
     // -------------------------------------------------------------------------
@@ -190,5 +206,4 @@ class LoanServiceTest {
 
         assertEquals(1, result.size());
     }
-
 }

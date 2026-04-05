@@ -4,11 +4,15 @@ import org.springframework.stereotype.Component;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.rest.dto.BookDto;
 import sk.posam.fsa.isk.rest.dto.BookGenreDto;
 import sk.posam.fsa.isk.rest.dto.CreateBookRequestDto;
+import sk.posam.fsa.isk.rest.dto.ReservationDto;
 
 import java.time.Year;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 public class BookMapper {
@@ -45,4 +49,9 @@ public class BookMapper {
                 dto.getTotalCopies()
         );
     }
+
+    public List<BookDto> toDto(Collection<Book> entities) {
+        return entities.stream().map(this::toDto).toList();
+    }
+
 }

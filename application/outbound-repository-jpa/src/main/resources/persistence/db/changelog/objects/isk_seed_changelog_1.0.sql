@@ -40,100 +40,96 @@ INSERT INTO book (isbn, title, author, genre, publisher, publication_year, total
 SELECT '9780061965487', 'To Kill a Mockingbird', 'Harper Lee', 'FICTION', 'HarperCollins', 1960, 2, 1
     WHERE NOT EXISTS (SELECT 1 FROM book WHERE isbn = '9780061965487');
 
--- FINES
-INSERT INTO fine (member_id, amount, currency, reason, status)
-SELECT (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk'),
-       2.50, 'EUR', 'Oneskorené vrátenie o 5 dní', 'PENDING'
-    WHERE NOT EXISTS (
-    SELECT 1 FROM fine f
-    WHERE f.member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
-    AND f.reason = 'Oneskorené vrátenie o 5 dní'
-);
-
-INSERT INTO fine (member_id, amount, currency, reason, status)
-SELECT (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk'),
-       1.00, 'EUR', 'Oneskorené vrátenie o 2 dni', 'PAID'
-    WHERE NOT EXISTS (
-    SELECT 1 FROM fine f
-    WHERE f.member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
-    AND f.reason = 'Oneskorené vrátenie o 2 dni'
-);
-
--- RESERVATIONS
-INSERT INTO reservation (member_id, isbn, created_on, status, position_in_queue)
-SELECT (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk'),
-       '9780201633610', CURRENT_DATE, 'PENDING', 1
-    WHERE NOT EXISTS (
-    SELECT 1 FROM reservation r
-    WHERE r.member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
-    AND r.isbn = '9780201633610'
-);
-
-INSERT INTO reservation (member_id, isbn, created_on, status, position_in_queue)
-SELECT (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk'),
-       '9780201633610', CURRENT_DATE, 'PENDING', 2
-    WHERE NOT EXISTS (
-    SELECT 1 FROM reservation r
-    WHERE r.member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
-    AND r.isbn = '9780201633610'
-);
-
-INSERT INTO reservation (member_id, isbn, created_on, status, position_in_queue)
-SELECT (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk'),
-       '9780061965487', CURRENT_DATE - INTERVAL '5 days', 'READY_FOR_PICKUP', 1
-WHERE NOT EXISTS (
-    SELECT 1 FROM reservation r
-    WHERE r.member_id = (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk')
-  AND r.isbn = '9780061965487'
-    );
-
--- LOANS
+-- LOANS (pred fines!)
 INSERT INTO loan (member_id, isbn, created_by_id, loan_date, due_date, renewal_count, status)
-SELECT (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk'),
-       '9780061965487',
-       (SELECT member_id FROM member WHERE email = 'admin@isk.sk'),
-       CURRENT_DATE - INTERVAL '10 days',
+SELECT
+    (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk'),
+    '9780061965487',
+    (SELECT member_id FROM member WHERE email = 'admin@isk.sk'),
+    CURRENT_DATE - INTERVAL '10 days',
     CURRENT_DATE + INTERVAL '4 days',
     0, 'ACTIVE'
 WHERE NOT EXISTS (
-    SELECT 1 FROM loan l
-    WHERE l.member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
-  AND l.isbn = '9780061965487'
+    SELECT 1 FROM loan WHERE member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
+  AND isbn = '9780061965487'
     );
 
 INSERT INTO loan (member_id, isbn, created_by_id, loan_date, due_date, return_date, renewal_count, status)
-SELECT (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk'),
-       '9780306406157',
-       (SELECT member_id FROM member WHERE email = 'admin@isk.sk'),
-       CURRENT_DATE - INTERVAL '20 days',
+SELECT
+    (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk'),
+    '9780306406157',
+    (SELECT member_id FROM member WHERE email = 'admin@isk.sk'),
+    CURRENT_DATE - INTERVAL '20 days',
     CURRENT_DATE - INTERVAL '6 days',
     CURRENT_DATE - INTERVAL '1 day',
     0, 'RETURNED'
 WHERE NOT EXISTS (
-    SELECT 1 FROM loan l
-    WHERE l.member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
-  AND l.isbn = '9780306406157'
+    SELECT 1 FROM loan WHERE member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
+  AND isbn = '9780306406157'
     );
 
 INSERT INTO loan (member_id, isbn, created_by_id, loan_date, due_date, renewal_count, status)
-SELECT (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk'),
-       '9780201633610',
-       (SELECT member_id FROM member WHERE email = 'admin@isk.sk'),
-       CURRENT_DATE - INTERVAL '20 days',
+SELECT
+    (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk'),
+    '9780201633610',
+    (SELECT member_id FROM member WHERE email = 'admin@isk.sk'),
+    CURRENT_DATE - INTERVAL '20 days',
     CURRENT_DATE - INTERVAL '6 days',
     0, 'OVERDUE'
 WHERE NOT EXISTS (
-    SELECT 1 FROM loan l
-    WHERE l.member_id = (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk')
-  AND l.isbn = '9780201633610'
+    SELECT 1 FROM loan WHERE member_id = (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk')
+  AND isbn = '9780201633610'
     );
 
--- RESET SEQUENCES
-SELECT setval(pg_get_serial_sequence('member', 'member_id'),
-              GREATEST((SELECT COALESCE(MAX(member_id), 1) FROM member), 1), true);
+-- FINES (po loans!)
+INSERT INTO fine (member_id, loan_id, amount, currency, reason, status)
+SELECT
+    (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk'),
+    (SELECT loan_id FROM loan
+     WHERE member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
+       AND isbn = '9780061965487'),
+    2.50, 'EUR', 'Oneskorené vrátenie o 5 dní', 'PENDING'
+    WHERE NOT EXISTS (
+    SELECT 1 FROM fine WHERE member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
+    AND reason = 'Oneskorené vrátenie o 5 dní'
+);
 
-SELECT setval(pg_get_serial_sequence('reservation', 'reservation_id'),
-              GREATEST((SELECT COALESCE(MAX(reservation_id), 1) FROM reservation), 1), true);
+INSERT INTO fine (member_id, loan_id, amount, currency, reason, status)
+SELECT
+    (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk'),
+    (SELECT loan_id FROM loan
+     WHERE member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
+       AND isbn = '9780306406157'),
+    1.00, 'EUR', 'Oneskorené vrátenie o 2 dni', 'PAID'
+    WHERE NOT EXISTS (
+    SELECT 1 FROM fine WHERE member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
+    AND reason = 'Oneskorené vrátenie o 2 dni'
+);
 
-SELECT setval(pg_get_serial_sequence('loan', 'loan_id'),
-              GREATEST((SELECT COALESCE(MAX(loan_id), 1) FROM loan), 1), true);
+-- RESERVATIONS
+INSERT INTO reservation (member_id, isbn, created_on, status, position_in_queue)
+SELECT
+    (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk'),
+    '9780201633610', CURRENT_DATE, 'PENDING', 1
+    WHERE NOT EXISTS (
+    SELECT 1 FROM reservation WHERE member_id = (SELECT member_id FROM member WHERE email = 'jan.novak@isk.sk')
+    AND isbn = '9780201633610'
+);
+
+INSERT INTO reservation (member_id, isbn, created_on, status, position_in_queue)
+SELECT
+    (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk'),
+    '9780201633610', CURRENT_DATE, 'PENDING', 2
+    WHERE NOT EXISTS (
+    SELECT 1 FROM reservation WHERE member_id = (SELECT member_id FROM member WHERE email = 'eva.kovacova@isk.sk')
+    AND isbn = '9780201633610'
+);
+
+INSERT INTO reservation (member_id, isbn, created_on, status, position_in_queue)
+SELECT
+    (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk'),
+    '9780061965487', CURRENT_DATE - INTERVAL '5 days', 'READY_FOR_PICKUP', 1
+WHERE NOT EXISTS (
+    SELECT 1 FROM reservation WHERE member_id = (SELECT member_id FROM member WHERE email = 'peter.horak@isk.sk')
+  AND isbn = '9780061965487'
+    );

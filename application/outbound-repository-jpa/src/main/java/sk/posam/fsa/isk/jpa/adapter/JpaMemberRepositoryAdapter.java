@@ -34,9 +34,7 @@ public class JpaMemberRepositoryAdapter implements MemberRepository {
     }
 
     @Override
-    public Collection<Member> findAll() {
-        return findAll();
-    }
+    public Collection<Member> findAll() {return memberSpringDataRepository.findAll();}
 
     @Override
     @Transactional
