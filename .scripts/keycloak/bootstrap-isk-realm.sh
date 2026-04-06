@@ -14,7 +14,10 @@ FORCE_RECREATE_REALM="${FORCE_RECREATE_REALM:-true}"
 USERS=(
   "admin@isk.sk:admin123:ADMIN:Admin:Admin"
   "librarian@isk.sk:librarian123:LIBRARIAN:Jan:Knihovnik"
-  "member@isk.sk:member123:MEMBER:Jan:Novak"
+  "jan.novak@isk.sk:heslo123:MEMBER:Jan:Novak"
+  "eva.kovacova@isk.sk:heslo123:MEMBER:Eva:Kovacova"
+  "peter.horak@isk.sk:heslo123:MEMBER:Peter:Horak"
+  "maria.balazova@isk.sk:heslo123:MEMBER:Maria:Balazova"
 )
 
 ROLES=("ADMIN" "LIBRARIAN" "MEMBER")

@@ -1,6 +1,6 @@
 -- MEMBERS
 INSERT INTO member (first_name, last_name, email, member_role, expiry_date, membership_status)
-SELECT 'Admin', 'Librarian', 'admin@isk.sk', 'LIBRARIAN', NULL, NULL
+SELECT 'Admin', 'Admin', 'admin@isk.sk', 'ADMIN', NULL, NULL
     WHERE NOT EXISTS (SELECT 1 FROM member WHERE email = 'admin@isk.sk');
 
 INSERT INTO member (first_name, last_name, email, member_role, expiry_date, membership_status)
@@ -18,6 +18,10 @@ SELECT 'Peter', 'Horak', 'peter.horak@isk.sk', 'MEMBER', '2024-01-01', 'EXPIRED'
 INSERT INTO member (first_name, last_name, email, member_role, expiry_date, membership_status)
 SELECT 'Maria', 'Balazova', 'maria.balazova@isk.sk', 'MEMBER', NULL, NULL
     WHERE NOT EXISTS (SELECT 1 FROM member WHERE email = 'maria.balazova@isk.sk');
+
+INSERT INTO member (first_name, last_name, email, member_role, expiry_date, membership_status)
+SELECT 'Jan', 'Knihovnik', 'librarian@isk.sk', 'LIBRARIAN', '2027-04-05', 'ACTIVE'
+    WHERE NOT EXISTS (SELECT 1 FROM member WHERE email = 'librarian@isk.sk');
 
 -- BOOKS
 INSERT INTO book (isbn, title, author, genre, publisher, publication_year, total_copies, available_copies)
