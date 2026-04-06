@@ -90,6 +90,20 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
+    public List<Loan> findAll() {
+        return loanRepository.findAll().stream().toList();
+    }
+
+    @Override
+    public Loan find(long id) {
+        return loanRepository.find(id)
+                .orElseThrow(() -> new DomainException(
+                        DomainException.Type.NOT_FOUND,
+                        "Výpôžička s ID " + id + " neexistuje."
+                ));
+    }
+
+    @Override
     public List<Loan> findOverdue() {
         return loanRepository.findOverdueLoans().stream().toList();
     }

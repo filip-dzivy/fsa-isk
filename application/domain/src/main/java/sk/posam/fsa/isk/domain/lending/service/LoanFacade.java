@@ -17,4 +17,8 @@ public interface LoanFacade {
     public void renew(Loan loan);
 
     public void returnBook(Loan loan);
+
+    public Loan find(long id);
+
+    public List<Loan> findAll();
 }

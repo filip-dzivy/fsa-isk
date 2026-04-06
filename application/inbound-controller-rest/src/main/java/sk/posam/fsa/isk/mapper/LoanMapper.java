@@ -5,6 +5,8 @@ import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.rest.dto.LoanDto;
 import sk.posam.fsa.isk.rest.dto.LoanStatusDto;
 
+import java.util.List;
+
 @Component
 public class LoanMapper {
 
@@ -32,5 +34,9 @@ public class LoanMapper {
         dto.setRenewalCount(entity.getRenewalCount());
         dto.setStatus(LoanStatusDto.valueOf(entity.getStatus().name()));
         return dto;
+    }
+
+    public List<LoanDto> toDto(List<Loan> entities) {
+        return entities.stream().map(this::toDto).toList();
     }
 }
