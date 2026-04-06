@@ -2,6 +2,8 @@ package sk.posam.fsa.isk.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -23,6 +25,26 @@ public class GlobalExceptionHandler {
                 resolveStatus(ex));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDto> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex, WebRequest request){
+        return new ResponseEntity<>(
+                createError("VALIDATION_ERROR", "Incorrect request format.",
+                        List.of("Please check your request"), request),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDto> handleValidation(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        List<String> details = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField() + " " + e.getDefaultMessage())
+                .toList();
+        return new ResponseEntity<>(
+                createError("VALIDATION_ERROR", "Invalid request body", details, request),
+                HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ErrorResponseDto> handleThrowable(
             Throwable ex, WebRequest request) {
@@ -30,6 +52,14 @@ public class GlobalExceptionHandler {
                 createError("INTERNAL_ERROR", "Unexpected internal error",
                         List.of("Please contact support"), request),
                 HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponseDto> handleIllegalArgument(
+            IllegalArgumentException ex, WebRequest request) {
+        return new ResponseEntity<>(
+                createError("VALIDATION_ERROR", ex.getMessage(), null, request),
+                HttpStatus.BAD_REQUEST);
     }
 
     private ErrorResponseDto createError(String code, String message,

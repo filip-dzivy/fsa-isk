@@ -27,3 +27,15 @@ management:
     web:
       exposure:
         include: "*"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: keycloak
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/ISK
+          jwk-set-uri: http://localhost:8080/auth/realms/ISK/protocol/openid-connect/certs

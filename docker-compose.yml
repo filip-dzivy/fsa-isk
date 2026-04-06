@@ -13,6 +13,22 @@ services:
     volumes:
       - isk_db_disk:/var/lib/postgresql/data
 
+  my-keycloak:
+    image: quay.io/keycloak/keycloak:26.5.5
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_LOG_LEVEL: info
+    command: [ "start-dev" ]
+    ports:
+      - "8081:8080"
+    networks:
+      - isk-network
+
 volumes:
   isk_db_disk:
     driver: local
+
+networks:
+  isk-network:
+    driver: bridge
