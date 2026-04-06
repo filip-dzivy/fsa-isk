@@ -165,19 +165,30 @@ class LoanServiceTest {
         Loan loan = new Loan(loanedTo, book, createdBy);
         LocalDate originalDue = loan.getDueDate();
 
-        service.renew(loan);
+        service.renew(loan, loanedTo);
 
         assertEquals(originalDue.plusDays(14), loan.getDueDate());
         assertEquals(1, loan.getRenewalCount());
         verify(loanRepository).save(loan);
     }
 
+
+    @Test
+    void renew_wrongMember_throws() {
+        Loan loan = new Loan(loanedTo, book, createdBy);
+        Member otherMember = new Member(3L, new Email("other@isk.sk"),
+                "Other", "Member", MemberRole.MEMBER);
+
+        assertThrows(DomainException.class, () -> service.renew(loan, otherMember));
+        verify(loanRepository, never()).save(any());
+    }
+
     @Test
     void renew_maxRenewalsReached_throws() {
         Loan loan = new Loan(loanedTo, book, createdBy);
-        service.renew(loan);
+        service.renew(loan, loanedTo);
 
-        assertThrows(DomainException.class, () -> service.renew(loan));
+        assertThrows(DomainException.class, () -> service.renew(loan, loanedTo));
         verify(loanRepository, times(1)).save(loan);
     }
 

@@ -14,7 +14,7 @@ public interface LoanFacade {
 
     public List<Loan> findOverdue();
 
-    public void renew(Loan loan);
+    public void renew(Loan loan, Member requestedBy);
 
     public void returnBook(Loan loan);
 

@@ -34,16 +34,15 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ### Členstvo
 - **RQ16** Systém umožní registráciu nových čitateľov.
-- **RQ17** Systém zabezpečí sledovanie typu členstva (študent, dospelý, senior).
-- **RQ18** Systém zabezpečí sledovanie platnosti členstva.
-- **RQ19** Systém zabezpečí upozornenie čitateľa o blížiacom sa konci členstva.
-- **RQ20** Systém zabezpečí blokovanie výpožičiek od čitateľov s neplatným členstvom.
-- **RQ21** Systém umožní čitateľovi obnoviť členstvo.
+- **RQ17** Systém zabezpečí sledovanie platnosti členstva.
+- **RQ18** Systém zabezpečí upozornenie čitateľa o blížiacom sa konci členstva.
+- **RQ19** Systém zabezpečí blokovanie výpožičiek od čitateľov s neplatným členstvom.
+- **RQ20** Systém umožní čitateľovi obnoviť členstvo.
 
 ### Pokuty a poplatky
-- **RQ22** Systém zabezpečí pokutovanie za omeškanie doby vrátenia knihy.
-- **RQ23** Systém umožní knihovníkovi zaznamenať úhradu pokuty.
-- **RQ24** Systém zabezpečí blokovanie výpožičiek od čitateľov s neuhradenými pokutami.
+- **RQ21** Systém zabezpečí pokutovanie za omeškanie doby vrátenia knihy.
+- **RQ22** Systém umožní knihovníkovi zaznamenať úhradu pokuty.
+- **RQ23** Systém zabezpečí blokovanie výpožičiek od čitateľov s neuhradenými pokutami.
 
 ### Administrácia
 - **RQ25** Systém umožní administratorovi spravovať používateľské účty.
@@ -145,7 +144,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC04 — Zobrazenie vlastných výpožičiek**
+**UC04 — Zobrazenie výpožičiek - čítateľ**
 
 **Účel** Systém umožní čitateľovi zobraziť svoje aktívne výpožičky.
 
@@ -163,7 +162,27 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC05 — Rezervovanie nedostupnej knihy**
+---
+
+**UC05 — Zobrazenie výpožičiek - admin, knihovník**
+
+**Účel** Systém umožní adminom a knihovníkom zobraziť všetky aktívne výpožičky a filtrovať medzi nimi.
+
+**Používateľ** Knihovník, Admin
+
+**Vstupné podmienky**
+- Knihovník, admin je prihlásený.
+
+**Výstup**
+- Zoznam aktuálnych výpožičiek s ich stavom a termínmi vrátenia.
+
+**Postup**
+1. Používateľ zvolí v systéme ,,Zobraziť výpožičky".
+2. Systém zobrazí zoznam aktuálnych výpožičiek a ich stavu.
+
+---
+
+**UC06 — Rezervovanie nedostupnej knihy**
 
 **Účel** Systém umožní čitateľovi rezervovať si aktuálne nedostupnú knihu.
 
@@ -187,7 +206,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC06 — Zobrazenie vlastných rezervácií**
+**UC07 — Zobrazenie vlastných rezervácií**
 
 **Účel** Systém umožní čitateľovi zobraziť svoje rezervácie.
 
@@ -205,7 +224,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC07 — Zrušenie rezervácie čitateľom**
+**UC08 — Zrušenie rezervácie čitateľom**
 
 **Účel** Systém umožní čitateľovi zrušiť vlastnú rezerváciu.
 
@@ -227,7 +246,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC08 — Predĺženie výpožičky**
+**UC09 — Predĺženie výpožičky**
 
 **Účel** Systém umožní čitateľovi predĺžiť aktívnu výpožičku.
 
@@ -236,7 +255,6 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 **Vstupné podmienky**
 - Čitateľ je prihlásený v systéme.
 - Čitateľ má aktívnu výpožičku, ktorá ešte nie je po termíne.
-- Na danú knihu neexistuje aktívna rezervácia iného čitateľa.
 
 **Výstup**
 - Predĺžená výpožička s novým dátumom splatnosti.
@@ -245,33 +263,33 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 1. Čitateľ zvolí „Moje výpožičky".
 2. Systém zobrazí zoznam aktívnych výpožičiek.
 3. Čitateľ zvolí „Predĺžiť" pri konkrétnej výpožičke.
-4. Systém overí podmienky predĺženia (žiadna rezervácia, výpožička nie je po termíne).
+4. Systém overí podmienky predĺženia (výpožička nie je po termíne).
 5. Systém predĺži dátum splatnosti o ďalších 14 dní a zvýši počítadlo predĺžení.
 
 ---
 
-**UC09 — Obnova členstva**
+**UC10 — Obnova členstva**
 
-**Účel** Systém umožní čitateľovi obnoviť vypršané alebo expirujúce členstvo.
+**Účel** Systém umožní adminovi alebo knihovníkovi obnoviť vypršané alebo expirujúce členstvo.
 
 **Používateľ** Čitateľ
 
 **Vstupné podmienky**
-- Čitateľ je prihlásený v systéme.
+- Používateľ je prihlásený v systéme.
 - Členstvo čitateľa je aktívne s blížiacim sa koncom platnosti, alebo už vypršalo.
 
 **Výstup**
 - Obnovené členstvo s novým dátumom platnosti.
 
 **Postup**
-1. Čitateľ zvolí „Moje členstvo" alebo klikne na upozornenie o expirujúcom členstve.
+1. Používateľ zvolí „členstvo" alebo klikne na upozornenie o expirujúcom členstve.
 2. Systém zobrazí aktuálny stav členstva a možnosti obnovy.
-3. Čitateľ zvolí typ členstva a potvrdí obnovu.
+3. Používateľ zvolí typ členstva a potvrdí obnovu.
 4. Systém predĺži platnosť členstva a aktualizuje stav.
 
 ---
 
-**UC10 — Správa kníh administrátorom**
+**UC11 — Správa kníh administrátorom**
 
 **Účel** Systém umožní administrátorovi pridávať, upravovať a odstraňovať knihy v katalógu.
 
@@ -303,7 +321,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC11 — Registrácia nového čitateľa**
+**UC12 — Registrácia nového čitateľa**
 
 **Účel** Systém umožní registráciu nového čitateľa do systému.
 
@@ -323,7 +341,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC12 — Zaplatenie pokuty**
+**UC13 — Zaplatenie pokuty**
 
 **Účel** Systém umožní zaznamenať úhradu pokuty čitateľa.
 
@@ -346,7 +364,7 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC13 — Správa používateľských účtov administrátorom**
+**UC14 — Správa používateľských účtov administrátorom**
 
 **Účel** Systém umožní administrátorovi spravovať používateľské účty.
 

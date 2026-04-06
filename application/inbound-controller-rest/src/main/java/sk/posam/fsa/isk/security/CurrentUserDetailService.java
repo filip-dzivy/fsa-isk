@@ -46,4 +46,16 @@ public class CurrentUserDetailService {
         }
         return user;
     }
+
+    public boolean hasRole(String role){
+        return SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+    }
+
+    public boolean isPrivileged(){
+        return hasRole("ADMIN") || hasRole("LIBRARIAN");
+    }
 }

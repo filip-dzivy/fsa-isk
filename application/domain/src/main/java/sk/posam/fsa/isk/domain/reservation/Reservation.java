@@ -55,10 +55,13 @@ public class Reservation {
         this.status = ReservationStatus.READY_FOR_PICKUP;
     }
 
-    public void cancel() {
+    public void cancel(Member RequestedBy) {
         require(IsCancellableReservationPredicate.INSTANCE.test(this),
                 DomainException.Type.CONFLICT,
                 "Rezerváciu v stave " + status + " nemožno zrušiť.");
+        require(createdBy.equals(RequestedBy),
+                DomainException.Type.FORBIDDEN,
+                "Member môže zrušiť iba svoju rezerváciu");
         this.status = ReservationStatus.CANCELLED;
     }
 

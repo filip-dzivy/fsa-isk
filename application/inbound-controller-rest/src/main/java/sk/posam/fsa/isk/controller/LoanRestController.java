@@ -15,6 +15,7 @@ import sk.posam.fsa.isk.mapper.LoanMapper;
 import sk.posam.fsa.isk.rest.api.LoansApi;
 import sk.posam.fsa.isk.rest.dto.CreateLoanRequestDto;
 import sk.posam.fsa.isk.rest.dto.LoanDto;
+import sk.posam.fsa.isk.security.CurrentUserDetailService;
 
 import java.util.List;
 
@@ -25,15 +26,17 @@ public class LoanRestController implements LoansApi {
     private final LoanMapper loanMapper;
     private final MemberFacade memberFacade;
     private final CatalogFacade catalogFacade;
+    private final CurrentUserDetailService currentUserDetailService;
 
     public LoanRestController(LoanFacade loanFacade,
                               LoanMapper loanMapper,
                               MemberFacade memberFacade,
-                              CatalogFacade catalogFacade) {
+                              CatalogFacade catalogFacade, CurrentUserDetailService currentUserDetailService) {
         this.loanFacade = loanFacade;
         this.loanMapper = loanMapper;
         this.memberFacade = memberFacade;
         this.catalogFacade = catalogFacade;
+        this.currentUserDetailService = currentUserDetailService;
     }
 
 
@@ -51,12 +54,19 @@ public class LoanRestController implements LoansApi {
     @Transactional(readOnly = true)
     public ResponseEntity<List<LoanDto>> getAllLoans(Long memberId) {
         List<Loan> loans;
-        if(memberId != null) {
-            Member member = memberFacade.find(memberId);
-            loans = loanFacade.findByMember(member);
+
+        if(currentUserDetailService.isPrivileged()) {
+            if (memberId != null) {
+                Member member = memberFacade.find(memberId);
+                loans = loanFacade.findByMember(member);
+            } else {
+                loans = loanFacade.findAll();
+            }
         } else {
-            loans = loanFacade.findAll();
+            Member currentMember = currentUserDetailService.getFullCurrentMember();
+            loans = loanFacade.findByMember(currentMember);
         }
+
         return ResponseEntity.ok(loanMapper.toDto(loans));
     }
 
@@ -70,7 +80,8 @@ public class LoanRestController implements LoansApi {
     @Transactional
     public ResponseEntity<Void> renewLoan(Long id) {
         Loan loan = loanFacade.find(id);
-        loanFacade.renew(loan);
+        Member currentMember = currentUserDetailService.getFullCurrentMember();
+        loanFacade.renew(loan, currentMember);
         return ResponseEntity.ok().build();
     }
 

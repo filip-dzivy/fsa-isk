@@ -60,7 +60,7 @@ public class Loan {
         this.status = LoanStatus.RETURNED;
     }
 
-    public void renew(){
+    public void renew(Member requestedBy){
         require(IsActiveLoanPredicate.INSTANCE.test(this),
                 DomainException.Type.CONFLICT,
                 "Predlžiť je možné len aktívnu výpožičku.");
@@ -70,6 +70,9 @@ public class Loan {
         require(HasRenewalCapacityPredicate.INSTANCE.test(this),
                 DomainException.Type.CONFLICT,
                 "Vypožičku viackrát už nie je možné predĺžiť.");
+        require(loanedTo.equals(requestedBy),
+                DomainException.Type.FORBIDDEN,
+                "Member si môže predlžiť iba svoju vypôžičku.");
         this.dueDate = dueDate.plusDays(LOAN_DURATION);
         this.renewalCount++;
     }

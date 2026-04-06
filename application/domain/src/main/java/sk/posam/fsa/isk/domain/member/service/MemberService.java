@@ -4,6 +4,7 @@ import sk.posam.fsa.isk.domain.member.Email;
 import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.member.Membership;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.util.Collection;
@@ -24,6 +25,7 @@ public class MemberService implements MemberFacade {
                             DomainException.Type.CONFLICT,
                             "Člen s emailom " + member.getEmail() + " už existuje.");
                 });
+        member.assignMembership(Membership.createNew());
         memberRepository.save(member);
     }
 
@@ -51,7 +53,11 @@ public class MemberService implements MemberFacade {
     @Override
     public void renewMembership(long id) {
         Member member = find(id);
-        member.renewMembership();
+        if (member.getMembership() == null){
+            member.assignMembership(Membership.createNew());
+        } else {
+            member.renewMembership();
+        }
         memberRepository.save(member);
     }
 

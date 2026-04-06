@@ -31,18 +31,18 @@ class SecurityConfiguration {
                         // Members
                         .requestMatchers(HttpMethod.POST, "/members").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/members/**").hasAnyRole("ADMIN", "LIBRARIAN")
-                        .requestMatchers("/members/*/membership/renew").hasRole("ADMIN")
+                        .requestMatchers("/members/*/membership/renew").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/members/*/fines/*/pay").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/members/*/fines/*/waive").hasRole("ADMIN")
                         // Loans
                         .requestMatchers(HttpMethod.POST, "/loans").hasRole("LIBRARIAN")
                         .requestMatchers("/loans/*/return").hasRole("LIBRARIAN")
                         .requestMatchers("/loans/*/renew").hasAnyRole("LIBRARIAN", "MEMBER")
-                        .requestMatchers(HttpMethod.GET, "/loans/**").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/loans/**").authenticated()
                         // Reservations
                         .requestMatchers(HttpMethod.POST, "/reservations").hasAnyRole("MEMBER", "LIBRARIAN")
                         .requestMatchers("/reservations/*/cancel").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/reservations").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.GET, "/reservations").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

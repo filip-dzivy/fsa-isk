@@ -1,4 +1,4 @@
-@startuml isk - doménový model
+ @startuml isk - doménový model
 
 skinparam class {
     BackgroundColor<<entity>> #FEFECE
@@ -11,219 +11,341 @@ skinparam class {
     BorderColor<<interface>> #8E24AA
     BackgroundColor<<factory>> #FFCCBC
     BorderColor<<factory>> #E64A19
+    BackgroundColor<<service>> #FFF9C4
+    BorderColor<<service>> #F9A825
+    BackgroundColor<<event>> #FCE4EC
+    BorderColor<<event>> #E91E63
+}
+
+package shared {
+    abstract class "«abstract»\nDomainEvent" as DomainEvent {
+        - occurredOn: Instant
+        --
+        + getOccurredOn(): Instant
+    }
+    class "«interface»\nDomainEventPublisher" as DomainEventPublisher <<interface>> {
+        + publish(DomainEvent): void
+    }
+    class "«exception»\nDomainException" as DomainException {
+        - type: Type
+        - details: List<String>
+        --
+        + getType(): Type
+        + getDetails(): List<String>
+    }
 }
 
 package catalog {
-    
     class "«entity»\nBook" as Book <<entity>> {
+        - id: Long
         - isbn: ISBN
         - title: String
         - author: String
-        - genre: String
+        - genre: BookGenre
         - publisher: String
-        - publicationYear: int
+        - publicationYear: Year
         - totalCopies: int
         - availableCopies: int
         --
-        + Book(ISBN, String, String, int)
+        + Book(ISBN, String, String, BookGenre, String, Year, int)
         + isAvailable(): boolean
         + borrowCopy(): void
         + returnCopy(): void
         + addCopies(int): void
+        + validateForCreation(): void
     }
-    
     class "«value object»\nISBN" as ISBN <<valueObject>> {
         - value: String
         --
         + getValue(): String
         + validate(): boolean
     }
-    
-    class "«interface»\nBookRepository" as BookRepository <<interface>> {
-        + findByIsbn(ISBN): Optional<Book>
-        + findByTitle(String): List<Book>
-        + findByAuthor(String): List<Book>
-        + save(Book): Book
+    class "«enumeration»\nBookGenre" as BookGenre <<enumeration>> {
+        FICTION
+        SCIENCE_FICTION
+        FANTASY
+        MYSTERY
+        THRILLER
+        HORROR
+        ROMANCE
+        HISTORICAL_FICTION
+        ADVENTURE
+        NOVEL
+        BIOGRAPHY
+        AUTOBIOGRAPHY
+        HISTORY
+        SCIENCE
+        TECHNOLOGY
+        PHILOSOPHY
+        PSYCHOLOGY
+        SELF_HELP
+        BUSINESS
+        POLITICS
+        TRUE_CRIME
+        POETRY
+        DRAMA
+        CHILDREN
+        YOUNG_ADULT
+        REFERENCE
+        TRAVEL
+        COOKBOOK
+        ART
+        RELIGION
+        LANGUAGE
+        OTHER
     }
-    
+    class "«interface»\nBookRepository" as BookRepository <<interface>> {
+        + find(ISBN): Optional<Book>
+        + findByTitle(String): Collection<Book>
+        + findByAuthor(String): Collection<Book>
+        + findByGenre(BookGenre): Collection<Book>
+        + findAll(): Collection<Book>
+        + save(Book): void
+        + delete(Book): void
+    }
+    class "«interface»\nCatalogFacade" as CatalogFacade <<interface>> {
+        + create(Book): void
+        + find(ISBN): Book
+        + findAll(): Collection<Book>
+        + findByTitle(String): Collection<Book>
+        + findByAuthor(String): Collection<Book>
+        + findByGenre(BookGenre): Collection<Book>
+    }
+    class "«service»\nCatalogService" as CatalogService <<service>> {
+        - bookRepository: BookRepository
+        --
+        + CatalogService(BookRepository)
+    }
     Book "1" *-- "1" ISBN : -isbn
+    Book "1" -- "1" BookGenre : -genre
     BookRepository ..> Book
+    CatalogService ..|> CatalogFacade
+    CatalogService ..> BookRepository : uses
 }
 
-package membership {
-    
-    class "«entity»\nMember" as Member <<entity>> {
-        - memberId: MemberId
+package ppl {
+    class "«entity»\nMember" as MemberE <<entity>> {
+        - id: long
         - email: Email
         - firstName: String
         - lastName: String
-        - role: UserRole
+        - memberRole: MemberRole
         - membership: Membership
         - fines: List<Fine>
         --
-        + Member(MemberId, Email, String, String)
+        + Member(long, Email, String, String, MemberRole)
         + canBorrow(): boolean
         + hasUnpaidFines(): boolean
         + addFine(Fine): void
-        + payFine(Fine): void
+        + assignMembership(Membership): void
+        + renewMembership(): void
+        + validateForCreation(): void
+        + getFullName(): String
     }
-    
-    class "«value object»\nMemberId" as MemberId <<valueObject>> {
-        - value: Long
-        --
-        + generate(): MemberId
-        + getValue(): Long
-    }
-    
     class "«value object»\nEmail" as Email <<valueObject>> {
         - value: String
         --
-        + getValue(): String
+        + toString(): String
     }
-    
-    class "«value object»\nMembership" as Membership <<valueObject>> {
-        - type: MembershipType
+    class "«value object»\nMembership" as MembershipVO <<valueObject>> {
         - expiryDate: LocalDate
         - status: MembershipStatus
         --
+        + {static} createNew(): Membership
         + isActive(): boolean
+        + isExpiringSoon(): boolean
         + renew(): Membership
+        + getExpiryDate(): LocalDate
+        + getStatus(): MembershipStatus
     }
-    
-    class "«value object»\nFine" as Fine <<valueObject>> {
-        - amount: Money
-        - reason: String
-        - status: FineStatus
-        --
-        + pay(): Fine
-        + isPaid(): boolean
-    }
-    
-    class "«value object»\nMoney" as Money <<valueObject>> {
-        - amount: BigDecimal
-        - currency: String
-    }
-    
-    class "«enumeration»\nUserRole" as UserRole <<enumeration>> {
-        MEMBER
+    class "«enumeration»\nMemberRole" as MemberRole <<enumeration>> {
+        "MEMBER"
         LIBRARIAN
         ADMIN
     }
-    
-    class "«enumeration»\nMembershipType" as MembershipType <<enumeration>> {
-        STUDENT
-        ADULT
-        SENIOR
-    }
-    
     class "«enumeration»\nMembershipStatus" as MembershipStatus <<enumeration>> {
         ACTIVE
         EXPIRED
         SUSPENDED
     }
-    
+    class "«interface»\nMemberRepository" as MemberRepository <<interface>> {
+        + find(long id): Optional<Member>
+        + find(Email): Optional<Member>
+        + findAll(): Collection<Member>
+        + save(Member): void
+        + delete(long id): void
+    }
+    class "«interface»\nMemberFacade" as MemberFacade <<interface>> {
+        + create(Member): void
+        + find(long id): Member
+        + find(Email): Member
+        + findAll(): Collection<Member>
+        + renewMembership(long id): void
+        + payFine(long memberId, long fineId): void
+        + waiveFine(long memberId, long fineId): void
+    }
+    class "«service»\nMemberService" as MemberService <<service>> {
+        - memberRepository: MemberRepository
+        --
+        + MemberService(MemberRepository)
+    }
+    MemberE "1" *-- "1" Email : -email
+    MemberE "1" *-- "1" MembershipVO : -membership
+    MemberE "1" -- "1" MemberRole : -memberRole
+    MembershipVO "1" -- "1" MembershipStatus : -status
+    MemberRepository ..> MemberE
+    MemberService ..|> MemberFacade
+    MemberService ..> MemberRepository : uses
+}
+
+package finance {
+    class "«entity»\nFine" as Fine <<entity>> {
+        - id: long
+        - amount: Money
+        - reason: String
+        - status: FineStatus
+        - loan: Loan
+        - member: Member
+        --
+        + Fine(Money, String)
+        + Fine(Money, String, Loan)
+        + pay(): void
+        + waive(): void
+        + updateAmount(Money): void
+        + isPaid(): boolean
+    }
+    class "«value object»\nMoney" as Money <<valueObject>> {
+        - amount: BigDecimal
+        - currency: String
+        --
+        + {static} of(double, String): Money
+        + {static} zero(String): Money
+        + add(Money): Money
+        + multiply(long): Money
+        + isGreaterThanZero(): boolean
+        + getAmount(): BigDecimal
+        + getCurrency(): String
+    }
     class "«enumeration»\nFineStatus" as FineStatus <<enumeration>> {
         PENDING
         PAID
         WAIVED
     }
-    
-    class "«interface»\nMemberRepository" as MemberRepository <<interface>> {
-        + findById(MemberId): Optional<Member>
-        + findByEmail(Email): Optional<Member>
-        + save(Member): Member
+    class "«interface»\nFineRepository" as FineRepository <<interface>> {
+        + findPendingByLoan(Loan): Optional<Fine>
+        + save(Fine): void
     }
-    
-    Member "1" *-- "1" MemberId : -memberId
-    Member "1" *-- "1" Email : -email
-    Member "1" *-- "1" Membership : -membership
-    Member "1" <-- "*" Fine : -fines
-    Member "1" -- "1" UserRole : -role
-    Membership "1" -- "1" MembershipType : -type
-    Membership "1" -- "1" MembershipStatus : -status
+    class "«factory»\nFineFactory" as FineFactory <<factory>> {
+        + createFor(Loan, Money): Fine
+        + updateFor(Fine, Loan, Money): void
+    }
+    class "«service»\nFineService" as FineService <<service>> {
+        + calculate(Loan): Fine
+        + dailyRate(): Money
+    }
     Fine "1" *-- "1" Money : -amount
     Fine "1" -- "1" FineStatus : -status
-    
-    MemberRepository ..> Member
+    FineRepository ..> Fine
+    FineFactory ..> Fine : creates
+    FineService ..> Fine : creates
 }
 
 package lending {
-    
     class "«entity»\nLoan" as Loan <<entity>> {
-        - loanId: LoanId
-        - memberId: MemberId
-        - bookIsbn: ISBN
-        - createdBy: MemberId
+        - id: long
+        - loanedTo: Member
+        - book: Book
+        - createdBy: Member
         - loanDate: LocalDate
         - dueDate: LocalDate
         - returnDate: LocalDate
         - renewalCount: int
         - status: LoanStatus
         --
-        + Loan(MemberId, ISBN, MemberId)
+        + Loan(Member, Book, Member)
+        + Loan(Member, Book, Member, LocalDate, int)
+        + validateForCreation(): void
         + returnBook(): void
-        + renew(): void
+        + renew(Member requestedBy): void
+        + markOverdue(): void
         + isOverdue(): boolean
+        + daysOverdue(): long
     }
-    
-    class "«value object»\nLoanId" as LoanId <<valueObject>> {
-        - value: Long
-        --
-        + generate(): LoanId
-        + getValue(): Long
-    }
-    
     class "«enumeration»\nLoanStatus" as LoanStatus <<enumeration>> {
         ACTIVE
         RETURNED
         OVERDUE
     }
-    
     class "«interface»\nLoanRepository" as LoanRepository <<interface>> {
-        + findById(LoanId): Optional<Loan>
-        + findByMemberId(MemberId): List<Loan>
-        + findOverdueLoans(): List<Loan>
-        + save(Loan): Loan
+        + find(long id): Optional<Loan>
+        + findByMember(Member): Collection<Loan>
+        + findByBook(Book): Collection<Loan>
+        + findAll(): Collection<Loan>
+        + findOverdueLoans(): Collection<Loan>
+        + save(Loan): void
     }
-    
-    class LoanFactory <<factory>> {
-        + createLoan(MemberId, ISBN, MemberId): Loan
+    class "«factory»\nLoanFactory" as LoanFactory <<factory>> {
+        + createLoan(Member, Book, Member): Loan
+        + createLoan(Member, Book, Member, LocalDate, int): Loan
     }
-    
-    Loan "1" *-- "1" LoanId : -loanId
-    Loan "*" <-- "1" MemberId : -memberId
-    Loan "*" <-- "1" ISBN : -bookIsbn
-    Loan "*" <-- "1" MemberId : -createdBy
+    class "«event»\nBookReturnedEvent" as BookReturnedEvent <<event>> {
+        - book: Book
+        --
+        + BookReturnedEvent(Book)
+        + getBook(): Book
+    }
+    class "«interface»\nLoanFacade" as LoanFacade <<interface>> {
+        + create(Member, Book, Member): void
+        + find(long id): Loan
+        + findAll(): List<Loan>
+        + findByMember(Member): List<Loan>
+        + findOverdue(): List<Loan>
+        + renew(Loan, Member): void
+        + returnBook(Loan): void
+    }
+    class "«service»\nLoanService" as LoanService <<service>> {
+        - bookRepository: BookRepository
+        - memberRepository: MemberRepository
+        - loanRepository: LoanRepository
+        - loanFactory: LoanFactory
+        - fineRepository: FineRepository
+        - fineFactory: FineFactory
+        - eventPublisher: DomainEventPublisher
+        - finesDailyRate: Money
+        --
+        + LoanService(BookRepository, MemberRepository, LoanRepository,\n  LoanFactory, FineRepository, DomainEventPublisher, Money, FineFactory)
+    }
     Loan "1" -- "1" LoanStatus : -status
-    
     LoanRepository ..> Loan
-    LoanFactory ..> Loan
+    LoanFactory ..> Loan : creates
+    BookReturnedEvent --|> DomainEvent
+    LoanService ..|> LoanFacade
+    LoanService ..> LoanRepository : uses
+    LoanService ..> LoanFactory : uses
+    LoanService ..> FineFactory : uses
+    LoanService ..> FineRepository : uses
+    LoanService ..> DomainEventPublisher : uses
+    LoanService ..> BookReturnedEvent : publishes
 }
 
 package reservation {
-    
     class "«entity»\nReservation" as Reservation <<entity>> {
-        - reservationId: ReservationId
-        - memberId: MemberId
-        - bookIsbn: ISBN
-        - createdDate: LocalDate
-        - expiryDate: LocalDate
+        - id: long
+        - createdBy: Member
+        - book: Book
+        - createdOn: LocalDate
         - status: ReservationStatus
         - positionInQueue: int
         --
-        + Reservation(MemberId, ISBN)
+        + Reservation(Member, Book)
+        + validateForCreation(): void
         + activate(): void
-        + cancel(): void
+        + cancel(Member requestedBy): void
         + expire(): void
+        + fulfill(): void
+        + isExpiredByDate(): boolean
+        + isActive(): boolean
     }
-    
-    class "«value object»\nReservationId" as ReservationId <<valueObject>> {
-        - value: Long
-        --
-        + generate(): ReservationId
-        + getValue(): Long
-    }
-    
     class "«enumeration»\nReservationStatus" as ReservationStatus <<enumeration>> {
         PENDING
         READY_FOR_PICKUP
@@ -231,50 +353,51 @@ package reservation {
         CANCELLED
         EXPIRED
     }
-    
     class "«interface»\nReservationRepository" as ReservationRepository <<interface>> {
-        + findById(ReservationId): Optional<Reservation>
-        + findPendingByIsbn(ISBN): List<Reservation>
-        + save(Reservation): Reservation
+        + find(long id): Optional<Reservation>
+        + findByMember(Member): Collection<Reservation>
+        + findByBook(Book): Collection<Reservation>
+        + findActiveByBook(Book): Collection<Reservation>
+        + findAll(): Collection<Reservation>
+        + save(Reservation): void
     }
-    
-    Reservation "1" *-- "1" ReservationId : -reservationId
-    Reservation "*" <-- "1" MemberId : -memberId
-    Reservation "*" <-- "1" ISBN : -bookIsbn
+    class "«interface»\nNotificationPort" as NotificationPort <<interface>> {
+        + notifyReservationReady(Member, Book): void
+        + notifyMembershipExpiringSoon(Member, int daysLeft): void
+    }
+    class "«interface»\nReservationFacade" as ReservationFacade <<interface>> {
+        + create(Member, Book): void
+        + cancel(Reservation, Member): void
+        + notifyNextInQueue(Book): void
+        + expireReadyReservations(): void
+        + hasPendingReservation(Book): boolean
+        + find(long id): Reservation
+        + findAll(): List<Reservation>
+        + findByMember(Member): List<Reservation>
+        + findByBook(Book): List<Reservation>
+    }
+    class "«service»\nReservationService" as ReservationService <<service>> {
+        - reservationRepository: ReservationRepository
+        - notificationPort: NotificationPort
+        --
+        + ReservationService(ReservationRepository, NotificationPort)
+    }
     Reservation "1" -- "1" ReservationStatus : -status
-    
     ReservationRepository ..> Reservation
+    ReservationService ..|> ReservationFacade
+    ReservationService ..> ReservationRepository : uses
+    ReservationService ..> NotificationPort : uses
 }
 
+MemberE "1" o-- "*" Fine : -fines
+Fine "*" --> "1" Loan : -loan
+Fine "*" --> "1" MemberE : -member
 
-class "«domain service»\nLoanService" as LoanService <<interface>> {
-    + create(MemberId, ISBN, MemberId): Loan
-    + return(LoanId): void
-    + renew(LoanId): void
-}
+Loan "*" --> "1" MemberE : -loanedTo
+Loan "*" --> "1" Book : -book
+Loan "*" --> "1" MemberE : -createdBy
 
-class "«domain service»\nReservationService" as ReservationService <<interface>> {
-    + create(MemberId, ISBN): Reservation
-    + cancel(ReservationId): void
-    + notify(ISBN): void
-}
-
-class "«domain service»\nFineService" as FineService <<interface>> {
-    + calculate(Loan): Fine
-}
-
-LoanService ..> BookRepository : uses
-LoanService ..> MemberRepository : uses
-LoanService ..> LoanRepository : uses
-LoanService ..> Book : updates
-LoanService ..> Member : validates
-LoanService ..> Loan : creates
-
-ReservationService ..> BookRepository : uses
-ReservationService ..> ReservationRepository : uses
-ReservationService ..> Reservation : creates
-
-FineService ..> Loan : reads
-FineService ..> Fine : creates
+Reservation "*" --> "1" MemberE : -createdBy
+Reservation "*" --> "1" Book : -book
 
 @enduml

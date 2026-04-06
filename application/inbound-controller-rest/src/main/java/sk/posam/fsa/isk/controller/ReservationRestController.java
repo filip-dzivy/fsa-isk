@@ -19,6 +19,7 @@ import sk.posam.fsa.isk.mapper.ReservationMapper;
 import sk.posam.fsa.isk.rest.api.ReservationsApi;
 import sk.posam.fsa.isk.rest.dto.CreateReservationRequestDto;
 import sk.posam.fsa.isk.rest.dto.ReservationDto;
+import sk.posam.fsa.isk.security.CurrentUserDetailService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,21 +30,24 @@ public class ReservationRestController implements ReservationsApi {
     private final ReservationMapper reservationMapper;
     private final MemberFacade memberFacade;
     private final CatalogFacade catalogFacade;
+    private final CurrentUserDetailService currentUserDetailService;
 
     public ReservationRestController(ReservationFacade reservationFacade,
                                      ReservationMapper reservationMapper,
                                      MemberFacade memberFacade,
-                                     CatalogFacade catalogFacade) {
+                                     CatalogFacade catalogFacade, CurrentUserDetailService currentUserDetailService) {
         this.reservationFacade = reservationFacade;
         this.reservationMapper = reservationMapper;
         this.memberFacade = memberFacade;
         this.catalogFacade = catalogFacade;
+        this.currentUserDetailService = currentUserDetailService;
     }
 
    @Override
     public ResponseEntity<Void> cancelReservation(Long id) {
         Reservation reservation = reservationFacade.find(id);
-        reservationFacade.cancel(reservation);
+        Member currentMember = currentUserDetailService.getFullCurrentMember();
+        reservationFacade.cancel(reservation, currentMember);
         return ResponseEntity.ok().build();
     }
 
@@ -59,12 +63,21 @@ public class ReservationRestController implements ReservationsApi {
     @Override
     public ResponseEntity<List<ReservationDto>> getAllReservations(Long memberId) {
         List<Reservation> reservations;
-        if (memberId != null) {
-            Member member = memberFacade.find(memberId);
-            reservations = reservationFacade.findByMember(member);
+
+        if(currentUserDetailService.isPrivileged()){
+            if(memberId != null) {
+                Member member = memberFacade.find(memberId);
+                reservations = reservationFacade.findByMember(member);
+            } else {
+                reservations = reservationFacade.findAll();
+            }
+
         } else {
-            reservations = reservationFacade.findAll();
+            // Member vidí iba svoje Reservacie
+            Member currentMember = currentUserDetailService.getFullCurrentMember();
+            reservations = reservationFacade.findByMember(currentMember);
         }
+
         return ResponseEntity.ok(reservationMapper.toDto(reservations));
     }
 }

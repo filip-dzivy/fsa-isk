@@ -44,13 +44,13 @@ public class ReservationTest {
 
     @Test
     void activatingNonPendingReservationThrows(){
-        reservation.cancel();
+        reservation.cancel(member);
         assertThrows(DomainException.class, reservation::activate);
     }
 
     @Test
     void cancelPendingReservation() {
-        reservation.cancel();
+        reservation.cancel(member);
         assertEquals(ReservationStatus.CANCELLED, reservation.getStatus());
         assertFalse(reservation.isActive());
     }
@@ -58,7 +58,7 @@ public class ReservationTest {
     @Test
     void cancelReadyForPickupReservation() {
         reservation.activate();
-        reservation.cancel();
+        reservation.cancel(member);
         assertEquals(ReservationStatus.CANCELLED, reservation.getStatus());
     }
 
@@ -66,7 +66,7 @@ public class ReservationTest {
     void cancellingFulfilledReservationThrows() {
         reservation.activate();
         reservation.fulfill();
-        assertThrows(DomainException.class, reservation::cancel);
+        assertThrows(DomainException.class, () -> reservation.cancel(member));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class ReservationTest {
 
     @Test
     void expiringCancelledReservationThrows() {
-        reservation.cancel();
+        reservation.cancel(member);
         assertThrows(DomainException.class, reservation::expire);
     }
 

@@ -10,7 +10,7 @@ public interface ReservationFacade {
 
     public void create(Member member, Book book);
 
-    public void cancel(Reservation reservation);
+    public void cancel(Reservation reservation, Member requestedBy);
 
     public void notifyNextInQueue(Book book);
 

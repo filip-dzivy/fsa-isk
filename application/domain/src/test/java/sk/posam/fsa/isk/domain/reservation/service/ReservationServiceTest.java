@@ -116,7 +116,7 @@ class ReservationServiceTest {
 
         when(reservationRepository.findActiveByBook(book)).thenReturn(new ArrayList<>(List.of(r2, r3)));
 
-        service.cancel(r1);
+        service.cancel(r1, member);
 
         assertEquals(ReservationStatus.CANCELLED, r1.getStatus());
         assertEquals(1, r2.getPositionInQueue());
@@ -130,7 +130,7 @@ class ReservationServiceTest {
     void cancel_alreadyCancelledReservation_throws() {
         Reservation r = new Reservation(1L, member, book, LocalDate.now(), ReservationStatus.CANCELLED, 1);
 
-        assertThrows(DomainException.class, () -> service.cancel(r));
+        assertThrows(DomainException.class, () -> service.cancel(r, member));
 
         verify(reservationRepository, never()).save(any());
     }

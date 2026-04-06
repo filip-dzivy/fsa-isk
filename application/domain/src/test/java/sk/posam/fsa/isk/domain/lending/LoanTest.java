@@ -57,21 +57,21 @@ public class LoanTest {
     @Test
     void renewExtendsDueDateBy14Days() {
         LocalDate originalDue = loanNotOverdue.getDueDate();
-        loanNotOverdue.renew();
+        loanNotOverdue.renew(loanedTo);
         assertEquals(originalDue.plusDays(14), loanNotOverdue.getDueDate());
         assertEquals(1, loanNotOverdue.getRenewalCount());
     }
 
     @Test
     void renewedBookIsNotAvailableForRenew() {
-        loanNotOverdue.renew();
-        assertThrows(DomainException.class, loanNotOverdue::renew);
+        loanNotOverdue.renew(loanedTo);
+        assertThrows(DomainException.class, () -> loanNotOverdue.renew(loanedTo));
     }
 
     @Test
     void renewingReturnedLoanThrows() {
         loanNotOverdue.returnBook();
-        assertThrows(DomainException.class, loanNotOverdue::renew);
+        assertThrows(DomainException.class, () -> loanNotOverdue.renew(loanedTo));
     }
 
     @Test
@@ -91,7 +91,7 @@ public class LoanTest {
     @Test
     void renewingOverdueLoanThrows() {
         assertTrue(loanOverdue.isOverdue());
-        assertThrows(DomainException.class, loanOverdue::renew);
+        assertThrows(DomainException.class, () -> loanOverdue.renew(loanedTo));
     }
 
     @Test

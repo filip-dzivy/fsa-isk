@@ -109,8 +109,8 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
-    public void renew(Loan loan) {
-        loan.renew();
+    public void renew(Loan loan, Member requestedBy) {
+        loan.renew(requestedBy);
         loanRepository.save(loan);
     }
 

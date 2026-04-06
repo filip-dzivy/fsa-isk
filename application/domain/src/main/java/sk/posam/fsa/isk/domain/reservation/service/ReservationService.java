@@ -50,8 +50,8 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
-    public void cancel(Reservation reservation) {
-        reservation.cancel();
+    public void cancel(Reservation reservation, Member requestedBy) {
+        reservation.cancel(requestedBy);
         reservationRepository.save(reservation);
         rebuildQueue(reservation.getBook());
     }
