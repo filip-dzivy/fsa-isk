@@ -15,6 +15,7 @@ import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.lending.event.BookReturnedEvent;
 import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
 import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
+import sk.posam.fsa.isk.domain.member.MemberRole;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -112,6 +113,26 @@ public class LoanService implements LoanFacade{
     public void renew(Loan loan, Member requestedBy) {
         loan.renew(requestedBy);
         loanRepository.save(loan);
+    }
+
+    @Override
+    public List<Loan> findVisible(Member requestingMember, Long targetMemberId) {
+        if (requestingMember.isPrivileged()) {
+            if(targetMemberId != null) {
+                Member targetMember = memberRepository.find(targetMemberId)
+                        .orElseThrow(() -> new DomainException(
+                                DomainException.Type.NOT_FOUND,
+                                "Člen s ID " + targetMemberId + " neexistuje."));
+                return loanRepository.findByMember(targetMember).stream().toList();
+            }
+            return loanRepository.findAll().stream().toList();
+        }
+        else if (targetMemberId != null && !targetMemberId.equals(requestingMember.getId())) {
+            throw new DomainException(
+                    DomainException.Type.FORBIDDEN,
+                    "Nemáte opravnenie zobraziť pôžičky iného člena.");
+        }
+        return loanRepository.findByMember(requestingMember).stream().toList();
     }
 
     private void require(boolean valid, DomainException.Type type, String message) {

@@ -53,21 +53,8 @@ public class LoanRestController implements LoansApi {
     @Override
     @Transactional(readOnly = true)
     public ResponseEntity<List<LoanDto>> getAllLoans(Long memberId) {
-        List<Loan> loans;
-
-        if(currentUserDetailService.isPrivileged()) {
-            if (memberId != null) {
-                Member member = memberFacade.find(memberId);
-                loans = loanFacade.findByMember(member);
-            } else {
-                loans = loanFacade.findAll();
-            }
-        } else {
-            Member currentMember = currentUserDetailService.getFullCurrentMember();
-            loans = loanFacade.findByMember(currentMember);
-        }
-
-        return ResponseEntity.ok(loanMapper.toDto(loans));
+        Member requestingMember = currentUserDetailService.getFullCurrentMember();
+        return ResponseEntity.ok(loanMapper.toDto(loanFacade.findVisible(requestingMember, memberId)));
     }
 
     @Override

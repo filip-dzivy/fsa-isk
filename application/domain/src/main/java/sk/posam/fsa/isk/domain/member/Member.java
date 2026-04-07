@@ -58,6 +58,10 @@ public class Member {
                 && HasNoUnpaidFinesPredicate.INSTANCE.test(this);
     }
 
+    public boolean isPrivileged() {
+        return memberRole == MemberRole.ADMIN || memberRole == MemberRole.LIBRARIAN;
+    }
+
     public long getId() {
         return id;
     }

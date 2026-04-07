@@ -1,5 +1,7 @@
 package sk.posam.fsa.isk.domain.lending.service;
 
+
+
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.member.Member;
@@ -21,4 +23,6 @@ public interface LoanFacade {
     public Loan find(long id);
 
     public List<Loan> findAll();
+
+    public List<Loan> findVisible(Member requestingMember, Long targetMemberId);
 }

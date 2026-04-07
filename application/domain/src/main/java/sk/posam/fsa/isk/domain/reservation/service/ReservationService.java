@@ -2,6 +2,8 @@ package sk.posam.fsa.isk.domain.reservation.service;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.member.Member;
+import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.member.MemberRole;
 import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
 import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
 import sk.posam.fsa.isk.domain.reservation.NotificationPort;
@@ -19,11 +21,13 @@ import static sk.posam.fsa.isk.domain.shared.DomainException.*;
 
 public class ReservationService implements ReservationFacade{
     private final ReservationRepository reservationRepository;
+    private final MemberRepository memberRepository;
     private final NotificationPort notificationPort;
 
 
-    public ReservationService(ReservationRepository reservationRepository, NotificationPort notificationPort) {
+    public ReservationService(ReservationRepository reservationRepository, MemberRepository memberRepository, NotificationPort notificationPort) {
         this.reservationRepository  = reservationRepository;
+        this.memberRepository = memberRepository;
         this.notificationPort = notificationPort;
     }
 
@@ -47,6 +51,17 @@ public class ReservationService implements ReservationFacade{
         Reservation reservation = new Reservation(member, book);
         reservation.setPositionInQueue(queue.size() + 1);
         reservationRepository.save(reservation);
+    }
+
+    @Override
+    public void create(Member requestingMember, Long targetMemberId, Book book) {
+        Member member = requestingMember.isPrivileged()
+                ? memberRepository.find(targetMemberId)
+                        .orElseThrow(() -> new DomainException(
+                                Type.NOT_FOUND,
+                                "Člen s ID " + targetMemberId + " neexistuje."))
+                : requestingMember;
+        create(member, book);
     }
 
     @Override
@@ -108,6 +123,26 @@ public class ReservationService implements ReservationFacade{
         return reservationRepository.findActiveByBook(book)
                 .stream()
                 .anyMatch(Reservation::isActive);
+    }
+
+    @Override
+    public List<Reservation> findVisible(Member requestingMember, Long targetMemberId) {
+        if (requestingMember.isPrivileged()) {
+            if(targetMemberId != null){
+                Member targetMember = memberRepository.find(targetMemberId)
+                        .orElseThrow(() -> new DomainException(
+                                DomainException.Type.NOT_FOUND,
+                                "Člen s ID " + targetMemberId + " neexistuje."));
+                return reservationRepository.findByMember(targetMember).stream().toList();
+            }
+            return reservationRepository.findAll().stream().toList();
+        }
+        if (targetMemberId != null && !targetMemberId.equals(requestingMember.getId())) {
+            throw new DomainException(
+                    DomainException.Type.FORBIDDEN,
+                    "Nemáte opravnenie zobraziť rezervácie iného člena.");
+        }
+        return reservationRepository.findByMember(requestingMember).stream().toList();
     }
 
     private void rebuildQueue(Book book) {

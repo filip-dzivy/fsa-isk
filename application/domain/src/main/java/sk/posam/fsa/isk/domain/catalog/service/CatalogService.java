@@ -54,4 +54,12 @@ public class CatalogService implements CatalogFacade{
 
     @Override
     public Collection<Book> findByTitle(String title) { return bookRepository.findByTitle(title);}
+
+    @Override
+    public Collection<Book> search(String title, String author, BookGenre genre) {
+        if (title != null) return bookRepository.findByTitle(title);
+        if (author != null) return bookRepository.findByAuthor(author);
+        if (genre != null) return bookRepository.findByGenre(genre);
+        return bookRepository.findAll();
+    }
 }

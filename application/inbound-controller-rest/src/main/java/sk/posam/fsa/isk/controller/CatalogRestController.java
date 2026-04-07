@@ -13,7 +13,6 @@ import sk.posam.fsa.isk.rest.dto.BookDto;
 import sk.posam.fsa.isk.rest.dto.BookGenreDto;
 import sk.posam.fsa.isk.rest.dto.CreateBookRequestDto;
 
-import java.util.Collection;
 import java.util.List;
 
 @RestController
@@ -36,19 +35,8 @@ public class CatalogRestController implements BooksApi {
 
     @Override
     public ResponseEntity<List<BookDto>> getAllBooks(String title, String author, BookGenreDto genre) {
-        Collection<Book> books;
-
-        if(title != null) {
-            books = catalogFacade.findByTitle(title);
-        } else if (author != null) {
-            books = catalogFacade.findByAuthor(author);
-        } else if (genre != null) {
-            books = catalogFacade.findByGenre(BookGenre.valueOf(genre.name()));
-        } else {
-            books = catalogFacade.findAll();
-        }
-
-        return ResponseEntity.ok(bookMapper.toDto(books));
+        BookGenre bookGenre = genre != null ? BookGenre.valueOf(genre.name()) : null;
+        return ResponseEntity.ok(bookMapper.toDto(catalogFacade.search(title, author, bookGenre)));
     }
 
     @Override

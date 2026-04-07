@@ -10,6 +10,8 @@ public interface ReservationFacade {
 
     public void create(Member member, Book book);
 
+    public void create(Member requestingMember, Long targetMemberId, Book book);
+
     public void cancel(Reservation reservation, Member requestedBy);
 
     public void notifyNextInQueue(Book book);
@@ -25,5 +27,7 @@ public interface ReservationFacade {
     Reservation find(long id);
 
     public boolean hasPendingReservation(Book book);
+
+    public List<Reservation> findVisible(Member requestingMember, Long targetMemberId);
 
 }

@@ -38,6 +38,7 @@ class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/loans").hasRole("LIBRARIAN")
                         .requestMatchers("/loans/*/return").hasRole("LIBRARIAN")
                         .requestMatchers("/loans/*/renew").hasAnyRole("LIBRARIAN", "MEMBER")
+                        .requestMatchers(HttpMethod.GET, "/loans/overdue").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/loans/**").authenticated()
                         // Reservations
                         .requestMatchers(HttpMethod.POST, "/reservations").hasAnyRole("MEMBER", "LIBRARIAN")
