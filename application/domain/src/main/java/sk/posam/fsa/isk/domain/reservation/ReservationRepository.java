@@ -16,6 +16,10 @@ public interface ReservationRepository {
 
     Collection<Reservation> findActiveByBook(Book book);
 
+    Collection<Reservation> findReadyForPickupByBook(Book book);
+
+    Collection<Reservation> findReadyForPickupByBooks(Collection<Book> books);
+
     Collection<Reservation> findAll();
 
     void save(Reservation reservation);

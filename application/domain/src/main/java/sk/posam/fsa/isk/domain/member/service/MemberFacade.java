@@ -10,6 +10,8 @@ public interface MemberFacade {
 
     void create(Member member);
 
+    Member findOrProvision(Email email, String firstName, String lastName);
+
     Member find(long id);
 
     Member find(Email email);

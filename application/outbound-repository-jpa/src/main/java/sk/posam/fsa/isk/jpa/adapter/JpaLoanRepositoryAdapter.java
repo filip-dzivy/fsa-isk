@@ -41,6 +41,11 @@ public class JpaLoanRepositoryAdapter implements LoanRepository {
     }
 
     @Override
+    public Collection<Loan> findActiveByBook(Book book) {
+        return loanSpringDataRepository.findByBookAndStatusNot(book, LoanStatus.RETURNED);
+    }
+
+    @Override
     public Collection<Loan> findAll() {
         return loanSpringDataRepository.findAll();
     }
@@ -48,6 +53,12 @@ public class JpaLoanRepositoryAdapter implements LoanRepository {
     @Override
     public Collection<Loan> findOverdueLoans() {
         return loanSpringDataRepository.findByStatus(LoanStatus.OVERDUE);
+    }
+
+    @Override
+    public Collection<Loan> findUnreturnedLoans() {
+        return loanSpringDataRepository.findByStatusIn(
+                java.util.List.of(LoanStatus.ACTIVE, LoanStatus.OVERDUE));
     }
 
     @Override

@@ -55,12 +55,14 @@ public class MemberRestController implements MembersApi {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> payFine(Long id, Long fineId) {
         memberFacade.payFine(id, fineId);
         return ResponseEntity.ok().build();
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> waiveFine(Long id, Long fineId) {
         memberFacade.waiveFine(id, fineId);
         return ResponseEntity.ok().build();

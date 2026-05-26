@@ -16,6 +16,24 @@ spring:
       - persistence/isk-orm.xml
   liquibase:
     change-log: classpath:persistence/db/changelog/changelog-master.xml
+  thymeleaf:
+    check-template-location: true
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:2525}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+notifications:
+  email:
+    enabled: ${NOTIFICATIONS_EMAIL_ENABLED:false}
+    from: ${NOTIFICATIONS_EMAIL_FROM:no-reply@isk.sk}
 
 management:
   endpoint:

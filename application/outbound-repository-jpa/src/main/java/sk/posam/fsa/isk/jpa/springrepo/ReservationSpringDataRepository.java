@@ -16,4 +16,8 @@ public interface ReservationSpringDataRepository extends JpaRepository<Reservati
     Collection<Reservation> findByBook(Book book);
 
     Collection<Reservation> findByBookAndStatusIn(Book book, List<ReservationStatus> statuses);
+
+    Collection<Reservation> findByBookAndStatus(Book book, ReservationStatus status);
+
+    Collection<Reservation> findByBookInAndStatus(Collection<Book> books, ReservationStatus status);
 }

@@ -27,6 +27,8 @@ class SecurityConfiguration {
                         .requestMatchers("/actuator/**").permitAll()
                         // Books
                         .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/books/*/copies").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/books/**").authenticated()
                         // Members
                         .requestMatchers(HttpMethod.POST, "/members").hasRole("ADMIN")

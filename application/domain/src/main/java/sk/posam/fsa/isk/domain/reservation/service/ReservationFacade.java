@@ -28,6 +28,8 @@ public interface ReservationFacade {
 
     public boolean hasPendingReservation(Book book);
 
+    public void fulfillReservation(Member member, Book book);
+
     public List<Reservation> findVisible(Member requestingMember, Long targetMemberId);
 
 }

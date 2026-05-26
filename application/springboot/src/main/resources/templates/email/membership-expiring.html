@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Členstvo končí</title>
+</head>
+<body style="font-family: Arial, sans-serif; color: #333; max-width: 560px; margin: 0 auto; padding: 24px;">
+  <h2 style="color: #2C5F7C;">Knižnica ISK</h2>
+  <p>Dobrý deň, <strong th:text="${firstName}">Čitateľ</strong>,</p>
+  <p>vaše členstvo v Knižnici ISK končí o <strong th:text="${daysLeft}">7</strong> dní.</p>
+  <p>Pre obnovenie členstva nás prosím navštívte počas otváracích hodín alebo kontaktujte knihovníka.</p>
+  <p style="background: #FFF6E0; border-left: 4px solid #D5A018; padding: 12px 16px; margin: 16px 0;">
+    Po skončení členstva si nebudete môcť vypožičať nové knihy ani vytvárať rezervácie.
+  </p>
+  <p style="color: #6B6B6B; font-size: 12px; margin-top: 32px;">Ďakujeme,<br/>Knižnica ISK</p>
+</body>
+</html>

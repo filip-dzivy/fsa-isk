@@ -4,6 +4,10 @@ import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.catalog.event.BookCopiesAddedEvent;
+import sk.posam.fsa.isk.domain.lending.LoanRepository;
+import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
+import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.text.CollationElementIterator;
@@ -13,9 +17,18 @@ import java.util.List;
 public class CatalogService implements CatalogFacade{
 
     private final BookRepository bookRepository;
+    private final LoanRepository loanRepository;
+    private final ReservationRepository reservationRepository;
+    private final DomainEventPublisher eventPublisher;
 
-    public CatalogService(BookRepository bookRepository){
+    public CatalogService(BookRepository bookRepository,
+                          LoanRepository loanRepository,
+                          ReservationRepository reservationRepository,
+                          DomainEventPublisher eventPublisher){
         this.bookRepository = bookRepository;
+        this.loanRepository = loanRepository;
+        this.reservationRepository = reservationRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -61,5 +74,30 @@ public class CatalogService implements CatalogFacade{
         if (author != null) return bookRepository.findByAuthor(author);
         if (genre != null) return bookRepository.findByGenre(genre);
         return bookRepository.findAll();
+    }
+
+    @Override
+    public void delete(ISBN isbn) {
+        Book book = find(isbn);
+        if (!loanRepository.findActiveByBook(book).isEmpty()) {
+            throw new DomainException(
+                    DomainException.Type.CONFLICT,
+                    "Knihu nemožno odstrániť, má aktívne výpožičky.");
+        }
+        if (!reservationRepository.findActiveByBook(book).isEmpty()) {
+            throw new DomainException(
+                    DomainException.Type.CONFLICT,
+                    "Knihu nemožno odstrániť, má aktívne rezervácie.");
+        }
+        bookRepository.delete(book);
+    }
+
+    @Override
+    public Book addCopies(ISBN isbn, int count) {
+        Book book = find(isbn);
+        book.addCopies(count);
+        bookRepository.save(book);
+        eventPublisher.publish(new BookCopiesAddedEvent(book, count));
+        return book;
     }
 }

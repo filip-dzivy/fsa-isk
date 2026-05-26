@@ -4,12 +4,15 @@ import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.member.MemberRole;
+import sk.posam.fsa.isk.domain.member.access.MemberVisibilityResolver;
 import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
 import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
-import sk.posam.fsa.isk.domain.reservation.NotificationPort;
+import sk.posam.fsa.isk.domain.shared.NotificationPort;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
+import sk.posam.fsa.isk.domain.reservation.ReservationStatus;
 import sk.posam.fsa.isk.domain.reservation.predicate.IsPendingReservationPredicate;
+import sk.posam.fsa.isk.domain.reservation.predicate.IsReadyForPickupPredicate;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.util.ArrayList;
@@ -22,12 +25,17 @@ import static sk.posam.fsa.isk.domain.shared.DomainException.*;
 public class ReservationService implements ReservationFacade{
     private final ReservationRepository reservationRepository;
     private final MemberRepository memberRepository;
+    private final MemberVisibilityResolver memberVisibilityResolver;
     private final NotificationPort notificationPort;
 
 
-    public ReservationService(ReservationRepository reservationRepository, MemberRepository memberRepository, NotificationPort notificationPort) {
+    public ReservationService(ReservationRepository reservationRepository,
+                              MemberRepository memberRepository,
+                              MemberVisibilityResolver memberVisibilityResolver,
+                              NotificationPort notificationPort) {
         this.reservationRepository  = reservationRepository;
         this.memberRepository = memberRepository;
+        this.memberVisibilityResolver = memberVisibilityResolver;
         this.notificationPort = notificationPort;
     }
 
@@ -73,15 +81,22 @@ public class ReservationService implements ReservationFacade{
 
     @Override
     public void notifyNextInQueue(Book book) {
-        reservationRepository.findActiveByBook(book)
-                .stream()
+        List<Reservation> active = reservationRepository.findActiveByBook(book).stream().toList();
+        long readyCount = active.stream().filter(IsReadyForPickupPredicate.INSTANCE).count();
+        int freeSlots = book.getAvailableCopies() - (int) readyCount;
+        if (freeSlots <= 0) return;
+
+        List<Reservation> toActivate = active.stream()
                 .filter(IsPendingReservationPredicate.INSTANCE)
-                .min(Comparator.comparingInt(Reservation::getPositionInQueue))
-                .ifPresent(first -> {
-                    first.activate();
-                    reservationRepository.save(first);
-                    notificationPort.notifyReservationReady(first.getCreatedBy(), book);
-                });
+                .sorted(Comparator.comparingInt(Reservation::getPositionInQueue))
+                .limit(freeSlots)
+                .toList();
+
+        for (Reservation r : toActivate) {
+            r.activate();
+            reservationRepository.save(r);
+            notificationPort.notifyReservationReady(r.getCreatedBy(), book);
+        }
     }
 
     @Override
@@ -119,6 +134,18 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    public void fulfillReservation(Member member, Book book) {
+        reservationRepository.findActiveByBook(book).stream()
+                .filter(r -> r.getCreatedBy().equals(member))
+                .filter(r -> r.getStatus() == ReservationStatus.READY_FOR_PICKUP)
+                .findFirst()
+                .ifPresent(r -> {
+                    r.fulfill();
+                    reservationRepository.save(r);
+                });
+    }
+
+    @Override
     public boolean hasPendingReservation(Book book) {
         return reservationRepository.findActiveByBook(book)
                 .stream()
@@ -127,22 +154,9 @@ public class ReservationService implements ReservationFacade{
 
     @Override
     public List<Reservation> findVisible(Member requestingMember, Long targetMemberId) {
-        if (requestingMember.isPrivileged()) {
-            if(targetMemberId != null){
-                Member targetMember = memberRepository.find(targetMemberId)
-                        .orElseThrow(() -> new DomainException(
-                                DomainException.Type.NOT_FOUND,
-                                "Člen s ID " + targetMemberId + " neexistuje."));
-                return reservationRepository.findByMember(targetMember).stream().toList();
-            }
-            return reservationRepository.findAll().stream().toList();
-        }
-        if (targetMemberId != null && !targetMemberId.equals(requestingMember.getId())) {
-            throw new DomainException(
-                    DomainException.Type.FORBIDDEN,
-                    "Nemáte opravnenie zobraziť rezervácie iného člena.");
-        }
-        return reservationRepository.findByMember(requestingMember).stream().toList();
+        return memberVisibilityResolver.resolve(requestingMember, targetMemberId)
+                .map(target -> reservationRepository.findByMember(target).stream().toList())
+                .orElseGet(() -> reservationRepository.findAll().stream().toList());
     }
 
     private void rebuildQueue(Book book) {

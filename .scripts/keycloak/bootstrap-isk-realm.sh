@@ -127,13 +127,48 @@ ensure_realm() {
 
   if [[ "$status" == "404" ]]; then
     log "Creating realm ${REALM_NAME}."
-    api_post "/admin/realms" "$(jq -n --arg realm "$REALM_NAME" '{realm:$realm, enabled:true}')"
+    api_post "/admin/realms" "$(jq -n --arg realm "$REALM_NAME" '{
+        realm: $realm,
+        enabled: true,
+        registrationAllowed: true,
+        registrationEmailAsUsername: true,
+        loginWithEmailAllowed: true,
+        resetPasswordAllowed: true,
+        verifyEmail: false
+      }')"
   elif [[ "$status" == "200" ]]; then
-    log "Realm ${REALM_NAME} already exists, reusing."
+    log "Realm ${REALM_NAME} already exists, ensuring registration is enabled."
+    api_put "/admin/realms/${REALM_NAME}" "$(jq -n --arg realm "$REALM_NAME" '{
+        realm: $realm,
+        enabled: true,
+        registrationAllowed: true,
+        registrationEmailAsUsername: true,
+        loginWithEmailAllowed: true,
+        resetPasswordAllowed: true,
+        verifyEmail: false
+      }')"
   else
     printf 'Unexpected realm status code: %s\n' "$status" >&2
     exit 1
   fi
+}
+
+ensure_default_member_role() {
+  # Make sure every newly-registered user automatically gets the MEMBER realm role.
+  local default_role
+  default_role="$(api_get "/admin/realms/${REALM_NAME}/roles/default-roles-${REALM_NAME,,}" 2>/dev/null || true)"
+  if [[ -z "$default_role" || "$default_role" == "null" ]]; then
+    log "default-roles composite not found, skipping MEMBER auto-assignment (Keycloak >= 19 expected)."
+    return
+  fi
+
+  local default_role_id
+  default_role_id="$(jq -r '.id' <<<"$default_role")"
+
+  local member_role
+  member_role="$(api_get "/admin/realms/${REALM_NAME}/roles/MEMBER")"
+  api_post "/admin/realms/${REALM_NAME}/roles-by-id/${default_role_id}/composites" "[$member_role]"
+  log "MEMBER role added to default-roles for new registrants."
 }
 
 ensure_realm_role() {
@@ -317,6 +352,8 @@ main() {
   for role in "${ROLES[@]}"; do
     ensure_realm_role "$role"
   done
+
+  ensure_default_member_role
 
   ensure_client
 

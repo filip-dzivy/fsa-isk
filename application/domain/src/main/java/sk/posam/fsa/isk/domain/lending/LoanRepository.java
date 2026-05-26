@@ -14,9 +14,13 @@ public interface LoanRepository {
 
     Collection<Loan> findByBook(Book book);
 
+    Collection<Loan> findActiveByBook(Book book);
+
     Collection<Loan> findAll();
 
     Collection<Loan> findOverdueLoans();
+
+    Collection<Loan> findUnreturnedLoans();
 
     void save(Loan loan);
 }

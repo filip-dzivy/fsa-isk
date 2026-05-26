@@ -2,7 +2,6 @@ package sk.posam.fsa.isk.domain.finance;
 
 import sk.posam.fsa.isk.domain.lending.Loan;
 
-// FineFactory.java v finance package
 public class FineFactory {
     public Fine createFor(Loan loan, Money dailyRate) {
         long days = loan.daysOverdue();

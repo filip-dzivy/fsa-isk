@@ -49,6 +49,17 @@ public class JpaReservationRepositoryAdapter implements ReservationRepository {
     }
 
     @Override
+    public Collection<Reservation> findReadyForPickupByBook(Book book) {
+        return reservationSpringDataRepository.findByBookAndStatus(book, ReservationStatus.READY_FOR_PICKUP);
+    }
+
+    @Override
+    public Collection<Reservation> findReadyForPickupByBooks(Collection<Book> books) {
+        if (books == null || books.isEmpty()) return java.util.List.of();
+        return reservationSpringDataRepository.findByBookInAndStatus(books, ReservationStatus.READY_FOR_PICKUP);
+    }
+
+    @Override
     public Collection<Reservation> findAll() {
         return reservationSpringDataRepository.findAll();
     }

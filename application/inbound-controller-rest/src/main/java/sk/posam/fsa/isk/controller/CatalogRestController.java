@@ -2,6 +2,7 @@ package sk.posam.fsa.isk.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
@@ -9,6 +10,7 @@ import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.service.CatalogFacade;
 import sk.posam.fsa.isk.mapper.BookMapper;
 import sk.posam.fsa.isk.rest.api.BooksApi;
+import sk.posam.fsa.isk.rest.dto.AddCopiesRequestDto;
 import sk.posam.fsa.isk.rest.dto.BookDto;
 import sk.posam.fsa.isk.rest.dto.BookGenreDto;
 import sk.posam.fsa.isk.rest.dto.CreateBookRequestDto;
@@ -42,6 +44,20 @@ public class CatalogRestController implements BooksApi {
     @Override
     public ResponseEntity<BookDto> getBookByIsbn(String isbn) {
         Book book = catalogFacade.find(new ISBN(isbn));
+        return ResponseEntity.ok(bookMapper.toDto(book));
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<Void> deleteBook(String isbn) {
+        catalogFacade.delete(new ISBN(isbn));
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<BookDto> addBookCopies(String isbn, AddCopiesRequestDto request) {
+        Book book = catalogFacade.addCopies(new ISBN(isbn), request.getCount());
         return ResponseEntity.ok(bookMapper.toDto(book));
     }
 }

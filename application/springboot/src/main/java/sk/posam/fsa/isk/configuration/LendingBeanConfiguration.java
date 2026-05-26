@@ -11,6 +11,8 @@ import sk.posam.fsa.isk.domain.lending.LoanRepository;
 import sk.posam.fsa.isk.domain.lending.service.LoanFacade;
 import sk.posam.fsa.isk.domain.lending.service.LoanService;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.member.access.MemberVisibilityResolver;
+import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 
 @Configuration
@@ -35,10 +37,13 @@ public class LendingBeanConfiguration {
                                  LoanRepository loanRepository,
                                  LoanFactory loanFactory,
                                  FineRepository fineRepository,
+                                 ReservationRepository reservationRepository,
+                                 MemberVisibilityResolver memberVisibilityResolver,
                                  DomainEventPublisher eventPublisher,
                                  Money finesDailyRate,
                                  FineFactory fineFactory) {
         return new LoanService(bookRepository, memberRepository, loanRepository,
-                loanFactory, fineRepository, eventPublisher, finesDailyRate, fineFactory);
+                loanFactory, fineRepository, reservationRepository, memberVisibilityResolver,
+                eventPublisher, finesDailyRate, fineFactory);
     }
 }

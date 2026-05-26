@@ -5,6 +5,7 @@ import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
+import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.rest.dto.BookDto;
 import sk.posam.fsa.isk.rest.dto.BookGenreDto;
 import sk.posam.fsa.isk.rest.dto.CreateBookRequestDto;
@@ -13,15 +14,35 @@ import sk.posam.fsa.isk.rest.dto.ReservationDto;
 import java.time.Year;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class BookMapper {
+
+    private final ReservationRepository reservationRepository;
+
+    public BookMapper(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
+    }
 
     public BookDto toDto(Book entity) {
         if (entity == null) {
             return null;
         }
+        return toDto(entity, reservationRepository.findReadyForPickupByBook(entity).size());
+    }
 
+    public List<BookDto> toDto(Collection<Book> entities) {
+        if (entities == null || entities.isEmpty()) return List.of();
+        Map<Book, Long> reservedCounts = reservationRepository.findReadyForPickupByBooks(entities).stream()
+                .collect(Collectors.groupingBy(Reservation::getBook, Collectors.counting()));
+        return entities.stream()
+                .map(book -> toDto(book, reservedCounts.getOrDefault(book, 0L).intValue()))
+                .toList();
+    }
+
+    private BookDto toDto(Book entity, int reservedCopies) {
         BookDto dto = new BookDto();
         dto.setIsbn(entity.getIsbn() != null ? entity.getIsbn().getValue() : null);
         dto.setTitle(entity.getTitle());
@@ -31,6 +52,7 @@ public class BookMapper {
         dto.setPublicationYear(entity.getPublicationYear().getValue());
         dto.setTotalCopies(entity.getTotalCopies());
         dto.setAvailableCopies(entity.getAvailableCopies());
+        dto.setReservedCopies(reservedCopies);
         return dto;
     }
 
@@ -49,9 +71,4 @@ public class BookMapper {
                 dto.getTotalCopies()
         );
     }
-
-    public List<BookDto> toDto(Collection<Book> entities) {
-        return entities.stream().map(this::toDto).toList();
-    }
-
 }

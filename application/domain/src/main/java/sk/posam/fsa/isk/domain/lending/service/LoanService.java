@@ -13,9 +13,13 @@ import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.lending.event.BookReturnedEvent;
+import sk.posam.fsa.isk.domain.lending.event.LoanCreatedEvent;
 import sk.posam.fsa.isk.domain.member.predicate.HasActiveMembershipPredicate;
 import sk.posam.fsa.isk.domain.member.predicate.HasNoUnpaidFinesPredicate;
 import sk.posam.fsa.isk.domain.member.MemberRole;
+import sk.posam.fsa.isk.domain.member.access.MemberVisibilityResolver;
+import sk.posam.fsa.isk.domain.reservation.Reservation;
+import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -27,6 +31,8 @@ public class LoanService implements LoanFacade{
     private final LoanRepository loanRepository;
     private final LoanFactory loanFactory;
     private final FineRepository fineRepository;
+    private final ReservationRepository reservationRepository;
+    private final MemberVisibilityResolver memberVisibilityResolver;
     private final DomainEventPublisher eventPublisher;
     private final Money finesDailyRate;
     private final FineFactory fineFactory;
@@ -36,6 +42,8 @@ public class LoanService implements LoanFacade{
                        LoanRepository loanRepository,
                        LoanFactory loanFactory,
                        FineRepository fineRepository,
+                       ReservationRepository reservationRepository,
+                       MemberVisibilityResolver memberVisibilityResolver,
                        DomainEventPublisher eventPublisher,
                        Money finesDailyRate,
                        FineFactory fineFactory) {
@@ -44,6 +52,8 @@ public class LoanService implements LoanFacade{
         this.loanRepository = loanRepository;
         this.loanFactory = loanFactory;
         this.fineRepository = fineRepository;
+        this.reservationRepository = reservationRepository;
+        this.memberVisibilityResolver = memberVisibilityResolver;
         this.eventPublisher = eventPublisher;
         this.finesDailyRate = finesDailyRate;
         this.fineFactory = fineFactory;
@@ -61,10 +71,21 @@ public class LoanService implements LoanFacade{
                 DomainException.Type.CONFLICT,
                 "Kniha " + book.getIsbn() + " nie je momentálne dostupná.");
 
+        List<Reservation> readyForPickup = reservationRepository.findReadyForPickupByBook(book).stream().toList();
+        boolean borrowerHasReservation = readyForPickup.stream()
+                .anyMatch(r -> r.getCreatedBy().equals(loanedTo));
+        long otherReadyCount = readyForPickup.stream()
+                .filter(r -> !r.getCreatedBy().equals(loanedTo))
+                .count();
+        require(borrowerHasReservation || book.getAvailableCopies() > otherReadyCount,
+                DomainException.Type.CONFLICT,
+                "Všetky dostupné kópie sú rezervované pre iných čitateľov.");
+
         book.borrowCopy();
         bookRepository.save(book);
         Loan loan = loanFactory.createLoan(loanedTo, book, createdBy);
         loanRepository.save(loan);
+        eventPublisher.publish(new LoanCreatedEvent(loanedTo, book));
     }
 
     @Override
@@ -117,22 +138,9 @@ public class LoanService implements LoanFacade{
 
     @Override
     public List<Loan> findVisible(Member requestingMember, Long targetMemberId) {
-        if (requestingMember.isPrivileged()) {
-            if(targetMemberId != null) {
-                Member targetMember = memberRepository.find(targetMemberId)
-                        .orElseThrow(() -> new DomainException(
-                                DomainException.Type.NOT_FOUND,
-                                "Člen s ID " + targetMemberId + " neexistuje."));
-                return loanRepository.findByMember(targetMember).stream().toList();
-            }
-            return loanRepository.findAll().stream().toList();
-        }
-        else if (targetMemberId != null && !targetMemberId.equals(requestingMember.getId())) {
-            throw new DomainException(
-                    DomainException.Type.FORBIDDEN,
-                    "Nemáte opravnenie zobraziť pôžičky iného člena.");
-        }
-        return loanRepository.findByMember(requestingMember).stream().toList();
+        return memberVisibilityResolver.resolve(requestingMember, targetMemberId)
+                .map(target -> loanRepository.findByMember(target).stream().toList())
+                .orElseGet(() -> loanRepository.findAll().stream().toList());
     }
 
     private void require(boolean valid, DomainException.Type type, String message) {

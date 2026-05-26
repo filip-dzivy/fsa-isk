@@ -20,6 +20,8 @@ import sk.posam.fsa.isk.domain.lending.LoanStatus;
 import sk.posam.fsa.isk.domain.lending.event.BookReturnedEvent;
 import sk.posam.fsa.isk.domain.lending.service.LoanService;
 import sk.posam.fsa.isk.domain.member.*;
+import sk.posam.fsa.isk.domain.member.access.MemberVisibilityResolver;
+import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -45,6 +47,10 @@ class LoanServiceTest {
     @Mock
     private FineRepository fineRepository;
     @Mock
+    private ReservationRepository reservationRepository;
+    @Mock
+    private MemberVisibilityResolver memberVisibilityResolver;
+    @Mock
     private DomainEventPublisher eventPublisher;
     @Mock
     private FineFactory fineFactory;
@@ -64,8 +70,8 @@ class LoanServiceTest {
         loanedTo.assignMembership(Membership.createNew());
 
         service = new LoanService(bookRepository, memberRepository, loanRepository,
-                loanFactory, fineRepository, eventPublisher,
-                Money.of(0.50, "EUR"), fineFactory);
+                loanFactory, fineRepository, reservationRepository, memberVisibilityResolver,
+                eventPublisher, Money.of(0.50, "EUR"), fineFactory);
     }
 
     // -------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import sk.posam.fsa.isk.domain.member.Email;
 import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
+import sk.posam.fsa.isk.domain.member.MemberRole;
 import sk.posam.fsa.isk.domain.member.Membership;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
@@ -43,6 +44,17 @@ public class MemberService implements MemberFacade {
                 .orElseThrow(() -> new DomainException(
                         DomainException.Type.NOT_FOUND,
                         "Člen s emailom " + email + " neexistuje."));
+    }
+
+    @Override
+    public Member findOrProvision(Email email, String firstName, String lastName) {
+        return memberRepository.find(email).orElseGet(() -> {
+            Member member = new Member(0L, email, firstName, lastName, MemberRole.MEMBER);
+            member.assignMembership(Membership.createNew());
+            memberRepository.save(member);
+            return memberRepository.find(email).orElseThrow(() -> new IllegalStateException(
+                    "Provisioned member could not be reloaded for email " + email));
+        });
     }
 
     @Override

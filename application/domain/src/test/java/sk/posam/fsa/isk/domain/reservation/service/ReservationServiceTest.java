@@ -12,8 +12,10 @@ import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.finance.Fine;
 import sk.posam.fsa.isk.domain.finance.Money;
 import sk.posam.fsa.isk.domain.member.*;
+import sk.posam.fsa.isk.domain.member.access.MemberVisibilityResolver;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationService;
 import sk.posam.fsa.isk.domain.shared.DomainException;
+import sk.posam.fsa.isk.domain.shared.NotificationPort;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -31,6 +33,8 @@ class ReservationServiceTest {
     private ReservationRepository reservationRepository;
     @Mock
     private MemberRepository memberRepository;
+    @Mock
+    private MemberVisibilityResolver memberVisibilityResolver;
     @Mock
     private NotificationPort notificationPort;
     @InjectMocks

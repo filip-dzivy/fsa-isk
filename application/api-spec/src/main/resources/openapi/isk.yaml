@@ -154,6 +154,106 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Odstránenie knihy z katalógu
+      operationId: deleteBook
+      tags:
+        - Book
+      parameters:
+        - name: isbn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Kniha úspešne odstránená
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict – kniha má aktívne výpožičky alebo rezervácie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /books/{isbn}/copies:
+    post:
+      summary: Pridanie nových kópií knihy
+      operationId: addBookCopies
+      tags:
+        - Book
+      parameters:
+        - name: isbn
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCopiesRequest'
+      responses:
+        '200':
+          description: Kópie úspešne pridané
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   # ─── MEMBERS ──────────────────────────────────────────────────────────────
 
@@ -847,6 +947,19 @@ components:
         availableCopies:
           type: integer
           readOnly: true
+        reservedCopies:
+          type: integer
+          readOnly: true
+          description: Počet kópií, ktoré sú aktuálne držané rezerváciami v stave READY_FOR_PICKUP.
+
+    AddCopiesRequest:
+      type: object
+      required:
+        - count
+      properties:
+        count:
+          type: integer
+          minimum: 1
 
     CreateBookRequest:
       type: object
@@ -1052,7 +1165,6 @@ components:
       required:
         - memberId
         - isbn
-        - createdById
       properties:
         memberId:
           type: integer
@@ -1061,10 +1173,6 @@ components:
         isbn:
           type: string
           description: ISBN vypožičiavanej knihy.
-        createdById:
-          type: integer
-          format: int64
-          description: ID knihovníka, ktorý výpožičku vytvára.
 
     LoanStatus:
       type: string

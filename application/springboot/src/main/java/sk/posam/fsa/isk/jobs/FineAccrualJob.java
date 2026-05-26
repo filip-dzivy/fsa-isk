@@ -1,6 +1,7 @@
 package sk.posam.fsa.isk.jobs;
 
 import jakarta.transaction.Transactional;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import sk.posam.fsa.isk.domain.finance.Fine;
@@ -34,9 +35,11 @@ public class FineAccrualJob {
     }
 
     @Scheduled(cron = "0 0 0 * * *")
+    @SchedulerLock(name = "accrueOverdueFines", lockAtLeastFor = "PT1M", lockAtMostFor = "PT15M")
     @Transactional
     public void accrueOverdueFines() {
-        loanRepository.findOverdueLoans()
+        loanRepository.findUnreturnedLoans().stream()
+                .filter(Loan::isOverdue)
                 .forEach(this::processLoan);
     }
 

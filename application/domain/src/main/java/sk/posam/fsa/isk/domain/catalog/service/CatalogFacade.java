@@ -21,4 +21,8 @@ public interface CatalogFacade {
     Collection<Book> findByGenre(BookGenre genre);
 
     Collection<Book> search(String title, String author, BookGenre genre);
+
+    void delete(ISBN isbn);
+
+    Book addCopies(ISBN isbn, int count);
 }

@@ -20,6 +20,7 @@ public class FineMapper {
         }
 
         FineDto dto = new FineDto();
+        dto.setId(entity.getId());
         dto.setAmount(moneyMapper.toDto(entity.getAmount()));
         dto.setReason(entity.getReason());
         dto.setStatus(FineStatusDto.valueOf(entity.getStatus().name()));

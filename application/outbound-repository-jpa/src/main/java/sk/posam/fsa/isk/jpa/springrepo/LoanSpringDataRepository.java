@@ -13,5 +13,9 @@ public interface LoanSpringDataRepository extends JpaRepository<Loan, Long> {
 
     Collection<Loan> findByBook(Book book);
 
+    Collection<Loan> findByBookAndStatusNot(Book book, LoanStatus status);
+
     Collection<Loan> findByStatus(LoanStatus status);
+
+    Collection<Loan> findByStatusIn(java.util.List<LoanStatus> statuses);
 }

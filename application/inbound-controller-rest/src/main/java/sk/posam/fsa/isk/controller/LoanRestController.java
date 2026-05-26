@@ -45,7 +45,7 @@ public class LoanRestController implements LoansApi {
     public ResponseEntity<Void> createLoan(CreateLoanRequestDto createLoanRequestDto) {
         Member loanedTo = memberFacade.find(createLoanRequestDto.getMemberId());
         Book book = catalogFacade.find(new ISBN(createLoanRequestDto.getIsbn()));
-        Member createdBy = memberFacade.find(createLoanRequestDto.getCreatedById());
+        Member createdBy = currentUserDetailService.getFullCurrentMember();
         loanFacade.create(loanedTo, book, createdBy);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -73,6 +73,7 @@ public class LoanRestController implements LoansApi {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> returnLoan(Long id) {
         Loan loan = loanFacade.find(id);
         loanFacade.returnBook(loan);
