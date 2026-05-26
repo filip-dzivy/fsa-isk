@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import sk.posam.fsa.isk.application.MemberProvisioningService;
 import sk.posam.fsa.isk.domain.member.Email;
 import sk.posam.fsa.isk.domain.member.Member;
+import sk.posam.fsa.isk.domain.member.service.MemberFacade;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 import sk.posam.fsa.isk.rest.dto.MemberDto;
 
@@ -14,9 +15,12 @@ import java.util.List;
 public class CurrentUserDetailService {
 
     private final MemberProvisioningService memberProvisioningService;
+    private final MemberFacade memberFacade;
 
-    public CurrentUserDetailService(MemberProvisioningService memberProvisioningService) {
+    public CurrentUserDetailService(MemberProvisioningService memberProvisioningService,
+                                    MemberFacade memberFacade) {
         this.memberProvisioningService = memberProvisioningService;
+        this.memberFacade = memberFacade;
     }
 
     public MemberDto getCurrentUser() {
@@ -39,11 +43,14 @@ public class CurrentUserDetailService {
     public Member getFullCurrentMember() {
         MemberDto principal = getCurrentUser();
         Email email = new Email(principal.getEmail());
-        return memberProvisioningService.findOrProvision(
+        // Ensure Member exists in DB (idempotent — JIT provision in own writable TX if missing).
+        memberProvisioningService.findOrProvision(
                 email,
                 principal.getFirstName(),
                 principal.getLastName()
         );
+        // Re-fetch in the current request's TX so lazy associations (fines, membership) are usable.
+        return memberFacade.find(email);
     }
 
     public boolean hasRole(String role){

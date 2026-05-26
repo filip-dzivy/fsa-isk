@@ -1,5 +1,7 @@
 package sk.posam.fsa.isk.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,6 +18,8 @@ import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ErrorResponseDto> handleDomainException(
@@ -48,6 +52,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ErrorResponseDto> handleThrowable(
             Throwable ex, WebRequest request) {
+        log.error("Unhandled exception on {}", resolvePath(request), ex);
         return new ResponseEntity<>(
                 createError("INTERNAL_ERROR", "Unexpected internal error",
                         List.of("Please contact support"), request),
