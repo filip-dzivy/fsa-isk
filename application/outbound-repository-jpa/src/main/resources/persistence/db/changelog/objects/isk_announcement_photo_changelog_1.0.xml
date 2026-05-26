@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="20260527_001" author="filip">
+        <comment>Photos attached to announcements (blob storage URLs)</comment>
+
+        <createTable tableName="announcement_photo">
+            <column name="announcement_photo_id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" primaryKeyName="announcement_photo_pk" nullable="false"/>
+            </column>
+            <column name="announcement_id" type="BIGINT">
+                <constraints nullable="false" notNullConstraintName="announcement_photo_nn01"
+                             foreignKeyName="announcement_photo_fk_announcement"
+                             references="announcement(announcement_id)"/>
+            </column>
+            <column name="url" type="VARCHAR(1024)">
+                <constraints nullable="false" notNullConstraintName="announcement_photo_nn02"/>
+            </column>
+            <column name="storage_key" type="VARCHAR(512)">
+                <constraints nullable="false" notNullConstraintName="announcement_photo_nn03"/>
+            </column>
+            <column name="caption" type="VARCHAR(500)"/>
+            <column name="position" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false" notNullConstraintName="announcement_photo_nn04"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="announcement_photo" indexName="announcement_photo_idx_announcement">
+            <column name="announcement_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

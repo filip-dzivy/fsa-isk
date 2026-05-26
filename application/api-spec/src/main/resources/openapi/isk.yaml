@@ -17,6 +17,8 @@ tags:
     description: Správa výpožičiek
   - name: Reservation
     description: Správa rezervácií
+  - name: Announcement
+    description: Oznamy a aktuality knižnice
 
 paths:
 
@@ -880,7 +882,230 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
           description: Internal Server Error
-          content: 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─── ANNOUNCEMENTS ───────────────────────────────────────────────────────
+
+  /announcements:
+    get:
+      summary: Zoznam všetkých oznamov
+      operationId: getAllAnnouncements
+      tags:
+        - Announcement
+      security: []
+      responses:
+        '200':
+          description: Zoznam oznamov
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Announcement'
+    post:
+      summary: Vytvorenie nového oznamu
+      operationId: createAnnouncement
+      tags:
+        - Announcement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAnnouncementRequest'
+      responses:
+        '201':
+          description: Oznam vytvorený
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announcement'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /announcements/{id}/photos:
+    post:
+      summary: Nahranie fotky k oznamu
+      operationId: uploadAnnouncementPhoto
+      tags:
+        - Announcement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                caption:
+                  type: string
+      responses:
+        '201':
+          description: Fotka pridaná
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnnouncementPhoto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict – limit fotiek dosiahnutý
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /announcements/{id}/photos/{photoId}:
+    delete:
+      summary: Vymazanie fotky z oznamu
+      operationId: deleteAnnouncementPhoto
+      tags:
+        - Announcement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: photoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Fotka vymazaná
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /announcements/{id}:
+    get:
+      summary: Detail oznamu
+      operationId: getAnnouncementById
+      tags:
+        - Announcement
+      security: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Detail oznamu
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announcement'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Úprava oznamu
+      operationId: updateAnnouncement
+      tags:
+        - Announcement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAnnouncementRequest'
+      responses:
+        '200':
+          description: Oznam upravený
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Announcement'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Vymazanie oznamu
+      operationId: deleteAnnouncement
+      tags:
+        - Announcement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Oznam vymazaný
+        '404':
+          description: Not Found
+          content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
@@ -1226,3 +1451,71 @@ components:
         - FULFILLED
         - CANCELLED
         - EXPIRED
+
+    # ─── ANNOUNCEMENT ────────────────────────────────────────────────────────
+
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        title:
+          type: string
+        content:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        authorName:
+          type: string
+          readOnly: true
+        photos:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/AnnouncementPhoto'
+
+    AnnouncementPhoto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          readOnly: true
+        url:
+          type: string
+          readOnly: true
+        caption:
+          type: string
+        position:
+          type: integer
+          readOnly: true
+
+    CreateAnnouncementRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+
+    UpdateAnnouncementRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1

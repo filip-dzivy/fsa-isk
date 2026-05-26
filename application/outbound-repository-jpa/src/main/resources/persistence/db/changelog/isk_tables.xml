@@ -4,4 +4,6 @@
                    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <include file="objects/isk_tables_changelog_1.0.xml" relativeToChangelogFile="true"/>
     <include file="objects/isk_shedlock_changelog_1.0.xml" relativeToChangelogFile="true"/>
+    <include file="objects/isk_announcement_changelog_1.0.xml" relativeToChangelogFile="true"/>
+    <include file="objects/isk_announcement_photo_changelog_1.0.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

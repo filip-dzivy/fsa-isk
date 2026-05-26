@@ -46,6 +46,13 @@ class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/reservations").hasAnyRole("MEMBER", "LIBRARIAN")
                         .requestMatchers("/reservations/*/cancel").authenticated()
                         .requestMatchers(HttpMethod.GET, "/reservations").authenticated()
+                        // Announcements — verejne čítanie, ADMIN/LIBRARIAN write
+                        .requestMatchers(HttpMethod.GET, "/announcements", "/announcements/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/announcements").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.PUT, "/announcements/*").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.DELETE, "/announcements/*").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.POST, "/announcements/*/photos").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.DELETE, "/announcements/*/photos/*").hasAnyRole("ADMIN", "LIBRARIAN")
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

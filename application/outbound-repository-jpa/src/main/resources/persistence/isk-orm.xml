@@ -197,4 +197,57 @@
         </attributes>
     </entity>
 
+    <!-- ANNOUNCEMENT -->
+    <entity class="sk.posam.fsa.isk.domain.announcement.Announcement" access="FIELD">
+        <table name="announcement"/>
+        <attributes>
+            <id name="id">
+                <column name="announcement_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="title">
+                <column name="title" nullable="false"/>
+            </basic>
+            <basic name="content">
+                <column name="content" nullable="false" column-definition="TEXT"/>
+            </basic>
+            <basic name="publishedAt">
+                <column name="published_at" nullable="false"/>
+            </basic>
+            <many-to-one name="author"
+                         target-entity="sk.posam.fsa.isk.domain.member.Member">
+                <join-column name="author_id" nullable="false"/>
+            </many-to-one>
+            <one-to-many name="photos"
+                         target-entity="sk.posam.fsa.isk.domain.announcement.AnnouncementPhoto">
+                <join-column name="announcement_id" nullable="false"/>
+                <cascade><cascade-all/></cascade>
+                <order-by>position ASC</order-by>
+            </one-to-many>
+        </attributes>
+    </entity>
+
+    <!-- ANNOUNCEMENT PHOTO -->
+    <entity class="sk.posam.fsa.isk.domain.announcement.AnnouncementPhoto" access="FIELD">
+        <table name="announcement_photo"/>
+        <attributes>
+            <id name="id">
+                <column name="announcement_photo_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="url">
+                <column name="url" nullable="false"/>
+            </basic>
+            <basic name="storageKey">
+                <column name="storage_key" nullable="false"/>
+            </basic>
+            <basic name="caption">
+                <column name="caption"/>
+            </basic>
+            <basic name="position">
+                <column name="position" nullable="false"/>
+            </basic>
+        </attributes>
+    </entity>
+
 </entity-mappings>
