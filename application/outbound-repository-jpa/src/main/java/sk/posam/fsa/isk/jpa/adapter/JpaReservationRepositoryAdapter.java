@@ -66,9 +66,13 @@ public class JpaReservationRepositoryAdapter implements ReservationRepository {
 
     @Override
     @Transactional
-    public void save(Reservation reservation) {
+    public Reservation save(Reservation reservation) {
         attachReferences(reservation);
-        entityManager.merge(reservation);
+        if (reservation.getId() == 0L) {
+            entityManager.persist(reservation);
+            return reservation;
+        }
+        return entityManager.merge(reservation);
     }
 
     private void attachReferences(Reservation reservation) {

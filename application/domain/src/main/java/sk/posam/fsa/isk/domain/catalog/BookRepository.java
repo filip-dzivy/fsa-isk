@@ -15,7 +15,7 @@ public interface BookRepository {
 
     Collection<Book> findAll();
 
-    void save(Book book);
+    Book save(Book book);
 
     void delete(Book book);
 

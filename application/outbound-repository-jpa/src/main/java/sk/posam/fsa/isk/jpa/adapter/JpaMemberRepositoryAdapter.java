@@ -38,8 +38,12 @@ public class JpaMemberRepositoryAdapter implements MemberRepository {
 
     @Override
     @Transactional
-    public void save(Member member) {
-        entityManager.merge(member);
+    public Member save(Member member) {
+        if (member.getId() == 0L) {
+            entityManager.persist(member);
+            return member;
+        }
+        return entityManager.merge(member);
     }
 
     @Override

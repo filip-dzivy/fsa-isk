@@ -22,5 +22,5 @@ public interface ReservationRepository {
 
     Collection<Reservation> findAll();
 
-    void save(Reservation reservation);
+    Reservation save(Reservation reservation);
 }

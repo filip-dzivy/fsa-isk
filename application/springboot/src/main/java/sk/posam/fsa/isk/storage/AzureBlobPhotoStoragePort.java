@@ -18,12 +18,6 @@ import sk.posam.fsa.isk.domain.shared.PhotoStoragePort;
 import java.io.ByteArrayInputStream;
 import java.util.UUID;
 
-/**
- * Production storage adapter — uploads bytes to Azure Blob Storage in the configured container.
- * Returns the public blob URL (assumes the container is configured for public read access).
- *
- * Active when {@code storage.azure.enabled=true} and the connection string + container name are provided.
- */
 @Component
 @ConditionalOnProperty(name = "storage.azure.enabled", havingValue = "true")
 public class AzureBlobPhotoStoragePort implements PhotoStoragePort {

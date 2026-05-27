@@ -52,7 +52,6 @@ public class Announcement {
                         DomainException.Type.NOT_FOUND,
                         "Fotka s ID " + photoId + " nie je súčasťou oznamu."));
         photos.remove(removed);
-        // Compact positions so they stay sequential 0..n-1
         for (int i = 0; i < photos.size(); i++) {
             photos.get(i).setPosition(i);
         }

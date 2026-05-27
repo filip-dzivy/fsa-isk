@@ -63,9 +63,13 @@ public class JpaLoanRepositoryAdapter implements LoanRepository {
 
     @Override
     @Transactional
-    public void save(Loan loan) {
+    public Loan save(Loan loan) {
         attachReferences(loan);
-        entityManager.merge(loan);
+        if (loan.getId() == 0L) {
+            entityManager.persist(loan);
+            return loan;
+        }
+        return entityManager.merge(loan);
     }
 
     private void attachReferences(Loan loan) {

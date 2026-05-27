@@ -2,7 +2,6 @@ package sk.posam.fsa.isk.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import sk.posam.fsa.isk.domain.catalog.Book;
@@ -11,6 +10,7 @@ import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.service.CatalogFacade;
 import sk.posam.fsa.isk.domain.shared.DomainException;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 import sk.posam.fsa.isk.mapper.BookMapper;
 import sk.posam.fsa.isk.rest.api.BooksApi;
 import sk.posam.fsa.isk.rest.dto.AddCopiesRequestDto;

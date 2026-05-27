@@ -11,10 +11,9 @@ import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 import sk.posam.fsa.isk.domain.shared.PhotoStoragePort;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 
-import java.text.CollationElementIterator;
 import java.util.Collection;
-import java.util.List;
 
 public class CatalogService implements CatalogFacade{
 
@@ -37,6 +36,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional
     public void create(Book book) {
         bookRepository.find(book.getIsbn())
                 .ifPresent(existing -> {
@@ -48,6 +48,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Book find(ISBN isbn) {
         return bookRepository.find(isbn)
                 .orElseThrow(() -> new DomainException(
@@ -56,24 +57,29 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Book> findAll() {
         return bookRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Book> findByAuthor(String author) {
         return bookRepository.findByAuthor(author);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Book> findByGenre(BookGenre genre) {
         return bookRepository.findByGenre(BookGenre.valueOf(genre.name()));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Book> findByTitle(String title) { return bookRepository.findByTitle(title);}
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Book> search(String title, String author, BookGenre genre) {
         if (title != null) return bookRepository.findByTitle(title);
         if (author != null) return bookRepository.findByAuthor(author);
@@ -82,6 +88,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional
     public void delete(ISBN isbn) {
         Book book = find(isbn);
         if (!loanRepository.findActiveByBook(book).isEmpty()) {
@@ -101,6 +108,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional
     public Book addCopies(ISBN isbn, int count) {
         Book book = find(isbn);
         book.addCopies(count);
@@ -110,6 +118,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional
     public Book updateDescription(ISBN isbn, String description) {
         Book book = find(isbn);
         book.updateDescription(description);
@@ -118,6 +127,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional
     public BookPhoto addPhoto(ISBN isbn, byte[] bytes, String contentType, String originalFilename, String caption) {
         Book book = find(isbn);
         PhotoStoragePort.StoredPhoto stored = photoStoragePort.upload(bytes, contentType, originalFilename);
@@ -133,6 +143,7 @@ public class CatalogService implements CatalogFacade{
     }
 
     @Override
+    @Transactional
     public void removePhoto(ISBN isbn, long photoId) {
         Book book = find(isbn);
         BookPhoto removed = book.removePhoto(photoId);

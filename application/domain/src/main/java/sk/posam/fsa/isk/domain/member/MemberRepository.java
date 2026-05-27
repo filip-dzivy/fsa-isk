@@ -11,7 +11,7 @@ public interface MemberRepository {
 
     Collection<Member> findAll();
 
-    void save(Member member);
+    Member save(Member member);
 
     void delete(long id);
 }

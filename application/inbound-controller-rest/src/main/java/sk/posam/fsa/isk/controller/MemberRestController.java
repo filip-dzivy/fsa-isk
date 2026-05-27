@@ -2,10 +2,10 @@ package sk.posam.fsa.isk.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.service.MemberFacade;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 import sk.posam.fsa.isk.mapper.MemberMapper;
 import sk.posam.fsa.isk.rest.api.MembersApi;
 import sk.posam.fsa.isk.rest.dto.CreateMemberRequestDto;
@@ -25,7 +25,7 @@ public class MemberRestController implements MembersApi {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<List<MemberDto>> getAllMembers() {
         return ResponseEntity.ok(
                 memberFacade.findAll().stream()
@@ -35,13 +35,14 @@ public class MemberRestController implements MembersApi {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<MemberDto> getMemberById(Long id) {
         Member member = memberFacade.find(id);
         return ResponseEntity.ok(memberMapper.toDto(member));
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> createMember(CreateMemberRequestDto dto) {
         Member member = memberMapper.toMember(dto);
         memberFacade.create(member);
@@ -49,6 +50,7 @@ public class MemberRestController implements MembersApi {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> renewMembership(Long id) {
         memberFacade.renewMembership(id);
         return ResponseEntity.ok().build();

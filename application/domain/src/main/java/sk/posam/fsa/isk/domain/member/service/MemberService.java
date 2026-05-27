@@ -7,6 +7,7 @@ import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.member.MemberRole;
 import sk.posam.fsa.isk.domain.member.Membership;
 import sk.posam.fsa.isk.domain.shared.DomainException;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 
 import java.util.Collection;
 
@@ -19,6 +20,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional
     public void create(Member member) {
         memberRepository.find(member.getEmail())
                 .ifPresent(existing -> {
@@ -31,6 +33,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Member find(long id) {
         return memberRepository.find(id)
                 .orElseThrow(() -> new DomainException(
@@ -39,6 +42,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Member find(Email email) {
         return memberRepository.find(email)
                 .orElseThrow(() -> new DomainException(
@@ -47,6 +51,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional
     public Member findOrProvision(Email email, String firstName, String lastName) {
         return memberRepository.find(email).orElseGet(() -> {
             Member member = new Member(0L, email, firstName, lastName, MemberRole.MEMBER);
@@ -58,11 +63,13 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Member> findAll() {
         return memberRepository.findAll();
     }
 
     @Override
+    @Transactional
     public void renewMembership(long id) {
         Member member = find(id);
         if (member.getMembership() == null){
@@ -74,6 +81,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional
     public void payFine(long memberId, long fineId) {
         Member member = find(memberId);
         Fine fine = member.getFines().stream()
@@ -87,6 +95,7 @@ public class MemberService implements MemberFacade {
     }
 
     @Override
+    @Transactional
     public void waiveFine(long memberId, long fineId) {
         Member member = find(memberId);
         Fine fine = member.getFines().stream()

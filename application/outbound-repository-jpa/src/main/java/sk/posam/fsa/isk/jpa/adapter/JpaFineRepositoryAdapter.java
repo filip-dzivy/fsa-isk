@@ -30,7 +30,11 @@ public class JpaFineRepositoryAdapter implements FineRepository {
 
     @Override
     @Transactional
-    public void save(Fine fine) {
-        entityManager.merge(fine);
+    public Fine save(Fine fine) {
+        if (fine.getId() == 0L) {
+            entityManager.persist(fine);
+            return fine;
+        }
+        return entityManager.merge(fine);
     }
 }

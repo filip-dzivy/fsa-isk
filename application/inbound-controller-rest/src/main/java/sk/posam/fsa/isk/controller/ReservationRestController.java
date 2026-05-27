@@ -2,13 +2,13 @@ package sk.posam.fsa.isk.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.service.CatalogFacade;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationFacade;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 import sk.posam.fsa.isk.mapper.ReservationMapper;
 import sk.posam.fsa.isk.rest.api.ReservationsApi;
 import sk.posam.fsa.isk.rest.dto.CreateReservationRequestDto;
@@ -35,6 +35,7 @@ public class ReservationRestController implements ReservationsApi {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Void> cancelReservation(Long id) {
         Member currentMember = currentUserDetailService.getFullCurrentMember();
         reservationFacade.cancel(reservationFacade.find(id), currentMember);
@@ -51,6 +52,7 @@ public class ReservationRestController implements ReservationsApi {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ReservationDto>> getAllReservations(Long memberId) {
         Member requestingMember = currentUserDetailService.getFullCurrentMember();
         return ResponseEntity.ok(reservationMapper.toDto(reservationFacade.findVisible(requestingMember, memberId)));

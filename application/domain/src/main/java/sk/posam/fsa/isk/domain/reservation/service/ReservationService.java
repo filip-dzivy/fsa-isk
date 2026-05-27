@@ -14,6 +14,7 @@ import sk.posam.fsa.isk.domain.reservation.ReservationStatus;
 import sk.posam.fsa.isk.domain.reservation.predicate.IsPendingReservationPredicate;
 import sk.posam.fsa.isk.domain.reservation.predicate.IsReadyForPickupPredicate;
 import sk.posam.fsa.isk.domain.shared.DomainException;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,6 +41,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional
     public void create(Member member, Book book) {
         require(HasActiveMembershipPredicate.INSTANCE.test(member.getMembership()),
                 Type.FORBIDDEN,
@@ -62,6 +64,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional
     public void create(Member requestingMember, Long targetMemberId, Book book) {
         Member member = requestingMember.isPrivileged()
                 ? memberRepository.find(targetMemberId)
@@ -73,6 +76,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional
     public void cancel(Reservation reservation, Member requestedBy) {
         reservation.cancel(requestedBy);
         reservationRepository.save(reservation);
@@ -80,6 +84,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional
     public void notifyNextInQueue(Book book) {
         List<Reservation> active = reservationRepository.findActiveByBook(book).stream().toList();
         long readyCount = active.stream().filter(IsReadyForPickupPredicate.INSTANCE).count();
@@ -100,6 +105,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional
     public void expireReadyReservations() {
         reservationRepository.findAll().stream()
                 .filter(Reservation::isExpiredByDate)
@@ -111,21 +117,25 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Reservation> findByMember(Member member) {
         return reservationRepository.findByMember(member).stream().toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Reservation> findByBook(Book book) {
         return reservationRepository.findByBook(book).stream().toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Reservation> findAll() {
         return reservationRepository.findAll().stream().toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Reservation find(long id){
         return reservationRepository.find(id)
                 .orElseThrow(()->new DomainException(
@@ -134,6 +144,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional
     public void fulfillReservation(Member member, Book book) {
         reservationRepository.findActiveByBook(book).stream()
                 .filter(r -> r.getCreatedBy().equals(member))
@@ -146,6 +157,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasPendingReservation(Book book) {
         return reservationRepository.findActiveByBook(book)
                 .stream()
@@ -153,6 +165,7 @@ public class ReservationService implements ReservationFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Reservation> findVisible(Member requestingMember, Long targetMemberId) {
         return memberVisibilityResolver.resolve(requestingMember, targetMemberId)
                 .map(target -> reservationRepository.findByMember(target).stream().toList())

@@ -50,8 +50,12 @@ public class JpaBookRepositoryAdapter implements BookRepository {
 
     @Override
     @Transactional
-    public void save(Book book) {
-        entityManager.merge(book);
+    public Book save(Book book) {
+        if (book.getId() == null) {
+            entityManager.persist(book);
+            return book;
+        }
+        return entityManager.merge(book);
     }
 
     @Override

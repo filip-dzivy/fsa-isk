@@ -35,11 +35,15 @@ public class JpaAnnouncementRepositoryAdapter implements AnnouncementRepository 
 
     @Override
     @Transactional
-    public void save(Announcement announcement) {
+    public Announcement save(Announcement announcement) {
         if (announcement.getAuthor() != null) {
             announcement.setAuthor(entityManager.getReference(Member.class, announcement.getAuthor().getId()));
         }
-        entityManager.merge(announcement);
+        if (announcement.getId() == 0L) {
+            entityManager.persist(announcement);
+            return announcement;
+        }
+        return entityManager.merge(announcement);
     }
 
     @Override

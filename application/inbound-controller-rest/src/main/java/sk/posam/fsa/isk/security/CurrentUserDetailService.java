@@ -43,13 +43,13 @@ public class CurrentUserDetailService {
     public Member getFullCurrentMember() {
         MemberDto principal = getCurrentUser();
         Email email = new Email(principal.getEmail());
-        // Ensure Member exists in DB (idempotent — JIT provision in own writable TX if missing).
+        // Zaisti ze member je v DB
         memberProvisioningService.findOrProvision(
                 email,
                 principal.getFirstName(),
                 principal.getLastName()
         );
-        // Re-fetch in the current request's TX so lazy associations (fines, membership) are usable.
+        // Re-fetch v current TX aby lazy loading fungovali.
         return memberFacade.find(email);
     }
 

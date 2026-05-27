@@ -5,5 +5,5 @@ import java.util.Optional;
 
 public interface FineRepository {
     Optional<Fine> findPendingByLoan(Loan loan);
-    void save(Fine fine);
+    Fine save(Fine fine);
 }

@@ -22,6 +22,7 @@ import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 
 import java.util.List;
 
@@ -60,6 +61,7 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
+    @Transactional
     public void create(Member loanedTo, Book book, Member createdBy){
         require(HasActiveMembershipPredicate.INSTANCE.test(loanedTo.getMembership()),
                 DomainException.Type.FORBIDDEN,
@@ -89,6 +91,7 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
+    @Transactional
     public void returnBook(Loan loan) {
         loan.returnBook();
 
@@ -107,16 +110,19 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Loan> findByMember(Member member) {
         return loanRepository.findByMember(member).stream().toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Loan> findAll() {
         return loanRepository.findAll().stream().toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Loan find(long id) {
         return loanRepository.find(id)
                 .orElseThrow(() -> new DomainException(
@@ -126,17 +132,20 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Loan> findOverdue() {
         return loanRepository.findOverdueLoans().stream().toList();
     }
 
     @Override
+    @Transactional
     public void renew(Loan loan, Member requestedBy) {
         loan.renew(requestedBy);
         loanRepository.save(loan);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Loan> findVisible(Member requestingMember, Long targetMemberId) {
         return memberVisibilityResolver.resolve(requestingMember, targetMemberId)
                 .map(target -> loanRepository.findByMember(target).stream().toList())

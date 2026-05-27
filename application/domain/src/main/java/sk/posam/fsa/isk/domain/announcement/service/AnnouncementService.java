@@ -6,6 +6,7 @@ import sk.posam.fsa.isk.domain.announcement.AnnouncementRepository;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 import sk.posam.fsa.isk.domain.shared.PhotoStoragePort;
+import sk.posam.fsa.isk.domain.shared.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -22,21 +23,22 @@ public class AnnouncementService implements AnnouncementFacade {
     }
 
     @Override
+    @Transactional
     public Announcement create(String title, String content, Member author) {
         Announcement announcement = new Announcement(title, content, author);
-        announcementRepository.save(announcement);
-        return announcement;
+        return announcementRepository.save(announcement);
     }
 
     @Override
+    @Transactional
     public Announcement update(long id, String title, String content) {
         Announcement announcement = find(id);
         announcement.update(title, content);
-        announcementRepository.save(announcement);
-        return announcement;
+        return announcementRepository.save(announcement);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Announcement find(long id) {
         return announcementRepository.find(id)
                 .orElseThrow(() -> new DomainException(
@@ -45,6 +47,7 @@ public class AnnouncementService implements AnnouncementFacade {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Announcement> findAll() {
         return announcementRepository.findAll().stream()
                 .sorted(Comparator.comparing(Announcement::getPublishedAt).reversed())
@@ -52,6 +55,7 @@ public class AnnouncementService implements AnnouncementFacade {
     }
 
     @Override
+    @Transactional
     public void delete(long id) {
         Announcement announcement = find(id);
         for (AnnouncementPhoto photo : announcement.getPhotos()) {
@@ -61,6 +65,7 @@ public class AnnouncementService implements AnnouncementFacade {
     }
 
     @Override
+    @Transactional
     public AnnouncementPhoto addPhoto(long announcementId, byte[] bytes, String contentType,
                                       String originalFilename, String caption) {
         Announcement announcement = find(announcementId);
@@ -78,6 +83,7 @@ public class AnnouncementService implements AnnouncementFacade {
     }
 
     @Override
+    @Transactional
     public void removePhoto(long announcementId, long photoId) {
         Announcement announcement = find(announcementId);
         AnnouncementPhoto removed = announcement.removePhoto(photoId);

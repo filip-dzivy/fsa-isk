@@ -22,5 +22,5 @@ public interface LoanRepository {
 
     Collection<Loan> findUnreturnedLoans();
 
-    void save(Loan loan);
+    Loan save(Loan loan);
 }

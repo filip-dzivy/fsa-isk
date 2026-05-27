@@ -9,7 +9,7 @@ public interface AnnouncementRepository {
 
     Collection<Announcement> findAll();
 
-    void save(Announcement announcement);
+    Announcement save(Announcement announcement);
 
     void delete(Announcement announcement);
 }
