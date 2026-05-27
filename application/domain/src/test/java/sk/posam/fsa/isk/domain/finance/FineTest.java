@@ -58,4 +58,38 @@ public class FineTest {
         assertThrows(DomainException.class,
                 () -> new Fine(AMOUNT, "  "));
     }
+
+    @Test
+    void updateAmountUpdatesPendingFine() {
+        Fine fine = new Fine(AMOUNT, REASON);
+        Money newAmount = Money.of(2.50, "EUR");
+        fine.updateAmount(newAmount);
+        assertEquals(newAmount, fine.getAmount());
+    }
+
+    @Test
+    void updateAmountOnPaidFineThrows() {
+        Fine fine = new Fine(AMOUNT, REASON);
+        fine.pay();
+        assertThrows(DomainException.class, () -> fine.updateAmount(Money.of(2.0, "EUR")));
+    }
+
+    @Test
+    void updateAmountOnWaivedFineThrows() {
+        Fine fine = new Fine(AMOUNT, REASON);
+        fine.waive();
+        assertThrows(DomainException.class, () -> fine.updateAmount(Money.of(2.0, "EUR")));
+    }
+
+    @Test
+    void updateAmountWithZeroThrows() {
+        Fine fine = new Fine(AMOUNT, REASON);
+        assertThrows(DomainException.class, () -> fine.updateAmount(Money.zero("EUR")));
+    }
+
+    @Test
+    void updateAmountWithNullThrows() {
+        Fine fine = new Fine(AMOUNT, REASON);
+        assertThrows(NullPointerException.class, () -> fine.updateAmount(null));
+    }
 }

@@ -251,4 +251,133 @@ class ReservationServiceTest {
 
         assertFalse(service.hasPendingReservation(book));
     }
+
+    // -------------------------------------------------------------------------
+    // fulfillReservation
+    // -------------------------------------------------------------------------
+
+    @Test
+    void fulfillReservation_marksReadyForPickupAsFulfilled() {
+        Reservation r = new Reservation(1L, member, book, LocalDate.now(),
+                ReservationStatus.READY_FOR_PICKUP, 1);
+        when(reservationRepository.findActiveByBook(book)).thenReturn(List.of(r));
+
+        service.fulfillReservation(member, book);
+
+        assertEquals(ReservationStatus.FULFILLED, r.getStatus());
+        verify(reservationRepository).save(r);
+    }
+
+    @Test
+    void fulfillReservation_pendingReservation_doesNothing() {
+        Reservation r = new Reservation(1L, member, book, LocalDate.now(),
+                ReservationStatus.PENDING, 1);
+        when(reservationRepository.findActiveByBook(book)).thenReturn(List.of(r));
+
+        service.fulfillReservation(member, book);
+
+        assertEquals(ReservationStatus.PENDING, r.getStatus());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void fulfillReservation_noMatchingMember_doesNothing() {
+        Member other = new Member(99L, new Email("o@o.sk"), "O", "O", MemberRole.MEMBER);
+        Reservation r = new Reservation(1L, other, book, LocalDate.now(),
+                ReservationStatus.READY_FOR_PICKUP, 1);
+        when(reservationRepository.findActiveByBook(book)).thenReturn(List.of(r));
+
+        service.fulfillReservation(member, book);
+
+        assertEquals(ReservationStatus.READY_FOR_PICKUP, r.getStatus());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    // -------------------------------------------------------------------------
+    // notifyNextInQueue with multiple free slots
+    // -------------------------------------------------------------------------
+
+    @Test
+    void notifyNextInQueue_freeSlotsGreaterThanOne_activatesMultiplePending() {
+        // Book has 3 available copies, 0 ready → 3 free slots
+        Member m2 = new Member(2L, new Email("eva@example.sk"), "Eva", "K", MemberRole.MEMBER);
+        Reservation r1 = new Reservation(1L, member, book, LocalDate.now(), ReservationStatus.PENDING, 1);
+        Reservation r2 = new Reservation(2L, m2, book, LocalDate.now(), ReservationStatus.PENDING, 2);
+        when(reservationRepository.findActiveByBook(book)).thenReturn(List.of(r1, r2));
+
+        service.notifyNextInQueue(book);
+
+        assertEquals(ReservationStatus.READY_FOR_PICKUP, r1.getStatus());
+        assertEquals(ReservationStatus.READY_FOR_PICKUP, r2.getStatus());
+        verify(notificationPort).notifyReservationReady(member, book);
+        verify(notificationPort).notifyReservationReady(m2, book);
+    }
+
+    // -------------------------------------------------------------------------
+    // create(requestingMember, targetMemberId, book) — privileged vs not
+    // -------------------------------------------------------------------------
+
+    @Test
+    void create_byPrivilegedForOtherMember_usesTargetMember() {
+        Member librarian = new Member(99L, new Email("lib@example.sk"), "L", "L", MemberRole.LIBRARIAN);
+        when(memberRepository.findWithFines(member.getId())).thenReturn(java.util.Optional.of(member));
+
+        service.create(librarian, member.getId(), book);
+
+        verify(reservationRepository).save(argThat(r -> r.getCreatedBy().equals(member)));
+    }
+
+    @Test
+    void create_byPrivilegedForUnknownMember_throwsNotFound() {
+        Member librarian = new Member(99L, new Email("lib@example.sk"), "L", "L", MemberRole.LIBRARIAN);
+        when(memberRepository.findWithFines(123L)).thenReturn(java.util.Optional.empty());
+
+        DomainException ex = assertThrows(DomainException.class,
+                () -> service.create(librarian, 123L, book));
+        assertEquals(DomainException.Type.NOT_FOUND, ex.getType());
+        verify(reservationRepository, never()).save(any());
+    }
+
+    @Test
+    void create_byNonPrivileged_ignoresTargetIdAndUsesSelf() {
+        // Service re-loads the requesting member with fines to evaluate predicates,
+        // so the requesting member's id ends up on the reservation.
+        when(memberRepository.findWithFines(member.getId())).thenReturn(java.util.Optional.of(member));
+
+        service.create(member, 999L, book);
+
+        verify(reservationRepository).save(argThat(r -> r.getCreatedBy().equals(member)));
+    }
+
+    // -------------------------------------------------------------------------
+    // find / findVisible
+    // -------------------------------------------------------------------------
+
+    @Test
+    void find_notFound_throwsNotFound() {
+        when(reservationRepository.find(42L)).thenReturn(java.util.Optional.empty());
+        DomainException ex = assertThrows(DomainException.class, () -> service.find(42L));
+        assertEquals(DomainException.Type.NOT_FOUND, ex.getType());
+    }
+
+    @Test
+    void findVisible_resolverReturnsTarget_returnsTargetReservations() {
+        Reservation r = new Reservation(1L, member, book, LocalDate.now(), ReservationStatus.PENDING, 1);
+        when(memberVisibilityResolver.resolve(member, member.getId()))
+                .thenReturn(java.util.Optional.of(member));
+        when(reservationRepository.findByMember(member)).thenReturn(List.of(r));
+
+        List<Reservation> result = service.findVisible(member, member.getId());
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findVisible_resolverReturnsEmpty_returnsAll() {
+        Reservation r = new Reservation(1L, member, book, LocalDate.now(), ReservationStatus.PENDING, 1);
+        when(memberVisibilityResolver.resolve(member, null)).thenReturn(java.util.Optional.empty());
+        when(reservationRepository.findAll()).thenReturn(List.of(r));
+
+        List<Reservation> result = service.findVisible(member, null);
+        assertEquals(1, result.size());
+    }
 }

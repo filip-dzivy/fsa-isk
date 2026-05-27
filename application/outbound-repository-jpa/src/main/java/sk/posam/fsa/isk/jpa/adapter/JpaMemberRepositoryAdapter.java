@@ -29,12 +29,22 @@ public class JpaMemberRepositoryAdapter implements MemberRepository {
     }
 
     @Override
+    public Optional<Member> findWithFines(long id) {
+        return memberSpringDataRepository.findWithFinesById(id);
+    }
+
+    @Override
     public Optional<Member> find(Email email) {
         return memberSpringDataRepository.findByEmail(email);
     }
 
     @Override
     public Collection<Member> findAll() {return memberSpringDataRepository.findAll();}
+
+    @Override
+    public Collection<Member> findAllWithFines() {
+        return memberSpringDataRepository.findAllWithFines();
+    }
 
     @Override
     @Transactional

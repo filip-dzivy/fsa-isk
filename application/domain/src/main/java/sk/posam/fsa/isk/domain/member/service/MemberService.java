@@ -35,7 +35,7 @@ public class MemberService implements MemberFacade {
     @Override
     @Transactional(readOnly = true)
     public Member find(long id) {
-        return memberRepository.find(id)
+        return memberRepository.findWithFines(id)
                 .orElseThrow(() -> new DomainException(
                         DomainException.Type.NOT_FOUND,
                         "Člen s ID " + id + " neexistuje."));
@@ -65,7 +65,7 @@ public class MemberService implements MemberFacade {
     @Override
     @Transactional(readOnly = true)
     public Collection<Member> findAll() {
-        return memberRepository.findAll();
+        return memberRepository.findAllWithFines();
     }
 
     @Override

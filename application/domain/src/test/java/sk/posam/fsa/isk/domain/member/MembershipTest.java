@@ -43,4 +43,39 @@ public class MembershipTest {
         assertTrue(renewed.isActive());
         assertTrue(renewed.getExpiryDate().isAfter(LocalDate.now().plusMonths(11)));
     }
+
+    @Test
+    void isExpiringSoonFalseWhenFarFromExpiry() {
+        Membership m = new Membership(LocalDate.now().plusDays(60));
+        assertTrue(m.isActive());
+        assertFalse(m.isExpiringSoon());
+    }
+
+    @Test
+    void isExpiringSoonFalseForExpiredMembership() {
+        Membership m = new Membership(LocalDate.now().minusDays(1));
+        assertFalse(m.isActive());
+        assertFalse(m.isExpiringSoon());
+    }
+
+    @Test
+    void isExpiringSoonTrueOnBoundaryDay() {
+        // Expiry exactly at +30 days falls inside the warning window (!isAfter today+30).
+        Membership m = new Membership(LocalDate.now().plusDays(30));
+        assertTrue(m.isExpiringSoon());
+    }
+
+    @Test
+    void equalsAndHashCodeBasedOnExpiryAndStatus() {
+        LocalDate expiry = LocalDate.now().plusDays(10);
+        Membership a = new Membership(expiry);
+        Membership b = new Membership(expiry);
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+    }
+
+    @Test
+    void nullExpiryDateThrows() {
+        assertThrows(NullPointerException.class, () -> new Membership(null));
+    }
 }

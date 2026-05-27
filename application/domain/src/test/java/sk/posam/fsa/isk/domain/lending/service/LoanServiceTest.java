@@ -223,4 +223,104 @@ class LoanServiceTest {
 
         assertEquals(1, result.size());
     }
+
+    // -------------------------------------------------------------------------
+    // Reservation interaction in create()
+    // -------------------------------------------------------------------------
+
+    @Test
+    void createLoan_allCopiesReservedForOthers_throwsConflict() {
+        // 1 copy, 1 ready-for-pickup reservation for another member → must throw.
+        Book oneCopyBook = new Book(new ISBN("9780306406157"), "Clean Code",
+                "Robert C. Martin", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008), 1);
+        Member otherMember = new Member(3L, new Email("other@isk.sk"),
+                "Other", "Reader", MemberRole.MEMBER);
+        sk.posam.fsa.isk.domain.reservation.Reservation r =
+                new sk.posam.fsa.isk.domain.reservation.Reservation(otherMember, oneCopyBook);
+        r.activate();
+        when(reservationRepository.findReadyForPickupByBook(oneCopyBook)).thenReturn(List.of(r));
+
+        DomainException ex = assertThrows(DomainException.class,
+                () -> service.create(loanedTo, oneCopyBook, createdBy));
+        assertEquals(DomainException.Type.CONFLICT, ex.getType());
+        verify(loanRepository, never()).save(any());
+    }
+
+    @Test
+    void createLoan_borrowerHasOwnReadyReservation_allowed() {
+        Book oneCopyBook = new Book(new ISBN("9780306406157"), "Clean Code",
+                "Robert C. Martin", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008), 1);
+        sk.posam.fsa.isk.domain.reservation.Reservation ownReservation =
+                new sk.posam.fsa.isk.domain.reservation.Reservation(loanedTo, oneCopyBook);
+        ownReservation.activate();
+        when(reservationRepository.findReadyForPickupByBook(oneCopyBook)).thenReturn(List.of(ownReservation));
+
+        Loan loan = new Loan(loanedTo, oneCopyBook, createdBy);
+        when(loanFactory.createLoan(loanedTo, oneCopyBook, createdBy)).thenReturn(loan);
+
+        service.create(loanedTo, oneCopyBook, createdBy);
+
+        verify(loanRepository).save(loan);
+        verify(eventPublisher).publish(any(sk.posam.fsa.isk.domain.lending.event.LoanCreatedEvent.class));
+    }
+
+    @Test
+    void createLoan_enoughCopiesForOthers_allowed() {
+        // 3 copies, 1 reserved for someone else → still 2 free for walk-ins.
+        Member otherMember = new Member(3L, new Email("other@isk.sk"),
+                "Other", "Reader", MemberRole.MEMBER);
+        sk.posam.fsa.isk.domain.reservation.Reservation r =
+                new sk.posam.fsa.isk.domain.reservation.Reservation(otherMember, book);
+        r.activate();
+        when(reservationRepository.findReadyForPickupByBook(book)).thenReturn(List.of(r));
+
+        Loan loan = new Loan(loanedTo, book, createdBy);
+        when(loanFactory.createLoan(loanedTo, book, createdBy)).thenReturn(loan);
+
+        service.create(loanedTo, book, createdBy);
+
+        verify(loanRepository).save(loan);
+    }
+
+    // -------------------------------------------------------------------------
+    // find / event publication
+    // -------------------------------------------------------------------------
+
+    @Test
+    void find_notFound_throwsNotFound() {
+        when(loanRepository.find(42L)).thenReturn(Optional.empty());
+        DomainException ex = assertThrows(DomainException.class, () -> service.find(42L));
+        assertEquals(DomainException.Type.NOT_FOUND, ex.getType());
+    }
+
+    @Test
+    void createLoan_publishesLoanCreatedEvent() {
+        Loan loan = new Loan(loanedTo, book, createdBy);
+        when(loanFactory.createLoan(loanedTo, book, createdBy)).thenReturn(loan);
+
+        service.create(loanedTo, book, createdBy);
+
+        verify(eventPublisher).publish(any(sk.posam.fsa.isk.domain.lending.event.LoanCreatedEvent.class));
+    }
+
+    @Test
+    void findVisible_resolverReturnsTarget_returnsTargetsLoans() {
+        Loan loan = new Loan(loanedTo, book, createdBy);
+        when(memberVisibilityResolver.resolve(createdBy, loanedTo.getId()))
+                .thenReturn(Optional.of(loanedTo));
+        when(loanRepository.findByMember(loanedTo)).thenReturn(List.of(loan));
+
+        List<Loan> result = service.findVisible(createdBy, loanedTo.getId());
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void findVisible_resolverReturnsEmpty_returnsAll() {
+        Loan loan = new Loan(loanedTo, book, createdBy);
+        when(memberVisibilityResolver.resolve(createdBy, null)).thenReturn(Optional.empty());
+        when(loanRepository.findAll()).thenReturn(List.of(loan));
+
+        List<Loan> result = service.findVisible(createdBy, null);
+        assertEquals(1, result.size());
+    }
 }

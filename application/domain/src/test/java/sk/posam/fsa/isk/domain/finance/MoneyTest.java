@@ -69,4 +69,30 @@ public class MoneyTest {
         Money m = new Money(BigDecimal.ONE, "eur");
         assertEquals("EUR", m.getCurrency());
     }
+
+    @Test
+    void multiplyByPositiveFactor() {
+        Money m = Money.of(0.50, "EUR").multiply(10);
+        assertEquals(new BigDecimal("5.00"), m.getAmount());
+        assertEquals("EUR", m.getCurrency());
+    }
+
+    @Test
+    void multiplyByZeroReturnsZeroMoney() {
+        Money m = Money.of(0.50, "EUR").multiply(0);
+        assertEquals(new BigDecimal("0.00"), m.getAmount());
+    }
+
+    @Test
+    void multiplyByNegativeFactorThrows() {
+        // Multiplying a positive amount by a negative factor would yield a
+        // negative result — domain forbids it.
+        assertThrows(DomainException.class, () -> Money.of(0.50, "EUR").multiply(-1));
+    }
+
+    @Test
+    void halfUpRoundingApplied() {
+        Money m = new Money(new BigDecimal("1.555"), "EUR");
+        assertEquals(new BigDecimal("1.56"), m.getAmount());
+    }
 }

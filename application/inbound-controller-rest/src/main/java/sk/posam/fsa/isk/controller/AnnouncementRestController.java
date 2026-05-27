@@ -9,7 +9,6 @@ import sk.posam.fsa.isk.domain.announcement.AnnouncementPhoto;
 import sk.posam.fsa.isk.domain.announcement.service.AnnouncementFacade;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.shared.DomainException;
-import sk.posam.fsa.isk.domain.shared.Transactional;
 import sk.posam.fsa.isk.mapper.AnnouncementMapper;
 import sk.posam.fsa.isk.rest.api.AnnouncementsApi;
 import sk.posam.fsa.isk.rest.dto.AnnouncementDto;
@@ -27,7 +26,7 @@ public class AnnouncementRestController implements AnnouncementsApi {
 
     private static final Set<String> ALLOWED_PHOTO_CONTENT_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp", "image/gif");
-    private static final long MAX_PHOTO_SIZE_BYTES = 5L * 1024 * 1024; // 5 MB
+    private static final long MAX_PHOTO_SIZE_BYTES = 5L * 1024 * 1024;
 
     private final AnnouncementFacade announcementFacade;
     private final AnnouncementMapper announcementMapper;
@@ -42,19 +41,16 @@ public class AnnouncementRestController implements AnnouncementsApi {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ResponseEntity<List<AnnouncementDto>> getAllAnnouncements() {
         return ResponseEntity.ok(announcementMapper.toDto(announcementFacade.findAll()));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ResponseEntity<AnnouncementDto> getAnnouncementById(Long id) {
         return ResponseEntity.ok(announcementMapper.toDto(announcementFacade.find(id)));
     }
 
     @Override
-    @Transactional
     public ResponseEntity<AnnouncementDto> createAnnouncement(CreateAnnouncementRequestDto dto) {
         Member author = currentUserDetailService.getFullCurrentMember();
         Announcement created = announcementFacade.create(dto.getTitle(), dto.getContent(), author);
@@ -62,21 +58,18 @@ public class AnnouncementRestController implements AnnouncementsApi {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<AnnouncementDto> updateAnnouncement(Long id, UpdateAnnouncementRequestDto dto) {
-        Announcement updated = announcementFacade.update(id, dto.getTitle(), dto.getContent());
-        return ResponseEntity.ok(announcementMapper.toDto(updated));
+        announcementFacade.update(id, dto.getTitle(), dto.getContent());
+        return ResponseEntity.ok(announcementMapper.toDto(announcementFacade.find(id)));
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Void> deleteAnnouncement(Long id) {
         announcementFacade.delete(id);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    @Transactional
     public ResponseEntity<AnnouncementPhotoDto> uploadAnnouncementPhoto(Long id, MultipartFile file, String caption) {
         if (file == null || file.isEmpty()) {
             throw new DomainException(DomainException.Type.VALIDATION, "Súbor je povinný.");
@@ -102,7 +95,6 @@ public class AnnouncementRestController implements AnnouncementsApi {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Void> deleteAnnouncementPhoto(Long id, Long photoId) {
         announcementFacade.removePhoto(id, photoId);
         return ResponseEntity.noContent().build();

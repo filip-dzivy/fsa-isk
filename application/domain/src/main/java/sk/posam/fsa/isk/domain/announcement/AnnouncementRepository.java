@@ -7,7 +7,11 @@ public interface AnnouncementRepository {
 
     Optional<Announcement> find(long id);
 
+    Optional<Announcement> findWithPhotos(long id);
+
     Collection<Announcement> findAll();
+
+    Collection<Announcement> findAllWithPhotos();
 
     Announcement save(Announcement announcement);
 

@@ -66,12 +66,13 @@ public class ReservationService implements ReservationFacade{
     @Override
     @Transactional
     public void create(Member requestingMember, Long targetMemberId, Book book) {
-        Member member = requestingMember.isPrivileged()
-                ? memberRepository.find(targetMemberId)
-                        .orElseThrow(() -> new DomainException(
-                                Type.NOT_FOUND,
-                                "Člen s ID " + targetMemberId + " neexistuje."))
-                : requestingMember;
+        long lookupId = requestingMember.isPrivileged() && targetMemberId != null
+                ? targetMemberId
+                : requestingMember.getId();
+        Member member = memberRepository.findWithFines(lookupId)
+                .orElseThrow(() -> new DomainException(
+                        Type.NOT_FOUND,
+                        "Člen s ID " + lookupId + " neexistuje."));
         create(member, book);
     }
 

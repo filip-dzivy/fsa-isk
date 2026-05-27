@@ -40,7 +40,7 @@ public class AnnouncementService implements AnnouncementFacade {
     @Override
     @Transactional(readOnly = true)
     public Announcement find(long id) {
-        return announcementRepository.find(id)
+        return announcementRepository.findWithPhotos(id)
                 .orElseThrow(() -> new DomainException(
                         DomainException.Type.NOT_FOUND,
                         "Oznam s ID " + id + " neexistuje."));
@@ -49,7 +49,7 @@ public class AnnouncementService implements AnnouncementFacade {
     @Override
     @Transactional(readOnly = true)
     public List<Announcement> findAll() {
-        return announcementRepository.findAll().stream()
+        return announcementRepository.findAllWithPhotos().stream()
                 .sorted(Comparator.comparing(Announcement::getPublishedAt).reversed())
                 .toList();
     }

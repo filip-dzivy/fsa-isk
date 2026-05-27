@@ -7,9 +7,13 @@ public interface MemberRepository {
 
     Optional<Member> find(long id);
 
+    Optional<Member> findWithFines(long id);
+
     Optional<Member> find(Email email);
 
     Collection<Member> findAll();
+
+    Collection<Member> findAllWithFines();
 
     Member save(Member member);
 

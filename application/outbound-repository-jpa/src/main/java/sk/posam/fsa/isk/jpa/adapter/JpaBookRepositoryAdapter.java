@@ -29,6 +29,11 @@ public class JpaBookRepositoryAdapter implements BookRepository {
     }
 
     @Override
+    public Optional<Book> findWithPhotos(ISBN isbn) {
+        return bookSpringDataRepository.findWithPhotosByIsbn(isbn);
+    }
+
+    @Override
     public Collection<Book> findByTitle(String title) {
         return bookSpringDataRepository.findByTitle(title);
     }
@@ -46,6 +51,11 @@ public class JpaBookRepositoryAdapter implements BookRepository {
     @Override
     public Collection<Book> findAll() {
         return bookSpringDataRepository.findAll();
+    }
+
+    @Override
+    public Collection<Book> searchWithPhotos(String title, String author, BookGenre genre) {
+        return bookSpringDataRepository.searchWithPhotos(title, author, genre);
     }
 
     @Override

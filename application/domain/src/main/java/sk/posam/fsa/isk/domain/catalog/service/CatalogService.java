@@ -6,7 +6,9 @@ import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.event.BookCopiesAddedEvent;
+import sk.posam.fsa.isk.domain.catalog.query.BookView;
 import sk.posam.fsa.isk.domain.lending.LoanRepository;
+import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
@@ -14,6 +16,8 @@ import sk.posam.fsa.isk.domain.shared.PhotoStoragePort;
 import sk.posam.fsa.isk.domain.shared.Transactional;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CatalogService implements CatalogFacade{
 
@@ -54,6 +58,24 @@ public class CatalogService implements CatalogFacade{
                 .orElseThrow(() -> new DomainException(
                         DomainException.Type.NOT_FOUND,
                         "Kniha s ISBN " + isbn + " neexistuje."));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BookView findDetail(ISBN isbn) {
+        return toView(isbn);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Collection<BookView> searchForListing(String title, String author, BookGenre genre) {
+        Collection<Book> books = bookRepository.searchWithPhotos(title, author, genre);
+        if (books.isEmpty()) return java.util.List.of();
+        Map<Book, Long> reservedByBook = reservationRepository.findReadyForPickupByBooks(books).stream()
+                .collect(Collectors.groupingBy(Reservation::getBook, Collectors.counting()));
+        return books.stream()
+                .map(b -> new BookView(b, reservedByBook.getOrDefault(b, 0L).intValue()))
+                .toList();
     }
 
     @Override
@@ -109,21 +131,30 @@ public class CatalogService implements CatalogFacade{
 
     @Override
     @Transactional
-    public Book addCopies(ISBN isbn, int count) {
+    public BookView addCopies(ISBN isbn, int count) {
         Book book = find(isbn);
         book.addCopies(count);
         bookRepository.save(book);
         eventPublisher.publish(new BookCopiesAddedEvent(book, count));
-        return book;
+        return toView(isbn);
     }
 
     @Override
     @Transactional
-    public Book updateDescription(ISBN isbn, String description) {
+    public BookView updateDescription(ISBN isbn, String description) {
         Book book = find(isbn);
         book.updateDescription(description);
         bookRepository.save(book);
-        return book;
+        return toView(isbn);
+    }
+
+    private BookView toView(ISBN isbn) {
+        Book reloaded = bookRepository.findWithPhotos(isbn)
+                .orElseThrow(() -> new DomainException(
+                        DomainException.Type.NOT_FOUND,
+                        "Kniha s ISBN " + isbn + " neexistuje."));
+        int reservedCopies = reservationRepository.findReadyForPickupByBook(reloaded).size();
+        return new BookView(reloaded, reservedCopies);
     }
 
     @Override

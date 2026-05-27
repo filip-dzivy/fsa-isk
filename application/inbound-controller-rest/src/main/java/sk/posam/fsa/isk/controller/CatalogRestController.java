@@ -10,7 +10,6 @@ import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.service.CatalogFacade;
 import sk.posam.fsa.isk.domain.shared.DomainException;
-import sk.posam.fsa.isk.domain.shared.Transactional;
 import sk.posam.fsa.isk.mapper.BookMapper;
 import sk.posam.fsa.isk.rest.api.BooksApi;
 import sk.posam.fsa.isk.rest.dto.AddCopiesRequestDto;
@@ -41,7 +40,6 @@ public class CatalogRestController implements BooksApi {
 
 
     @Override
-    @Transactional
     public ResponseEntity<Void> createBook(CreateBookRequestDto createBookRequestDto) {
         Book book = bookMapper.toBook(createBookRequestDto);
         catalogFacade.create(book);
@@ -49,42 +47,35 @@ public class CatalogRestController implements BooksApi {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ResponseEntity<List<BookDto>> getAllBooks(String title, String author, BookGenreDto genre) {
         BookGenre bookGenre = genre != null ? BookGenre.valueOf(genre.name()) : null;
-        return ResponseEntity.ok(bookMapper.toDto(catalogFacade.search(title, author, bookGenre)));
+        return ResponseEntity.ok(bookMapper.toDto(catalogFacade.searchForListing(title, author, bookGenre)));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ResponseEntity<BookDto> getBookByIsbn(String isbn) {
-        Book book = catalogFacade.find(new ISBN(isbn));
-        return ResponseEntity.ok(bookMapper.toDto(book));
+        return ResponseEntity.ok(bookMapper.toDto(catalogFacade.findDetail(new ISBN(isbn))));
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Void> deleteBook(String isbn) {
         catalogFacade.delete(new ISBN(isbn));
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    @Transactional
     public ResponseEntity<BookDto> addBookCopies(String isbn, AddCopiesRequestDto request) {
-        Book book = catalogFacade.addCopies(new ISBN(isbn), request.getCount());
-        return ResponseEntity.ok(bookMapper.toDto(book));
+        return ResponseEntity.ok(bookMapper.toDto(
+                catalogFacade.addCopies(new ISBN(isbn), request.getCount())));
     }
 
     @Override
-    @Transactional
     public ResponseEntity<BookDto> updateBookDescription(String isbn, UpdateBookDescriptionRequestDto request) {
-        Book book = catalogFacade.updateDescription(new ISBN(isbn), request.getDescription());
-        return ResponseEntity.ok(bookMapper.toDto(book));
+        return ResponseEntity.ok(bookMapper.toDto(
+                catalogFacade.updateDescription(new ISBN(isbn), request.getDescription())));
     }
 
     @Override
-    @Transactional
     public ResponseEntity<BookPhotoDto> uploadBookPhoto(String isbn, MultipartFile file, String caption) {
         if (file == null || file.isEmpty()) {
             throw new DomainException(DomainException.Type.VALIDATION, "Súbor je povinný.");
@@ -109,7 +100,6 @@ public class CatalogRestController implements BooksApi {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Void> deleteBookPhoto(String isbn, Long photoId) {
         catalogFacade.removePhoto(new ISBN(isbn), photoId);
         return ResponseEntity.noContent().build();

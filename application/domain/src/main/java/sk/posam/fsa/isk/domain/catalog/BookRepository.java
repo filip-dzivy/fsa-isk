@@ -7,6 +7,8 @@ public interface BookRepository {
 
     Optional<Book> find(ISBN isbn);
 
+    Optional<Book> findWithPhotos(ISBN isbn);
+
     Collection<Book> findByTitle(String title);
 
     Collection<Book> findByAuthor(String author);
@@ -14,6 +16,8 @@ public interface BookRepository {
     Collection<Book> findByGenre(BookGenre genre);
 
     Collection<Book> findAll();
+
+    Collection<Book> searchWithPhotos(String title, String author, BookGenre genre);
 
     Book save(Book book);
 

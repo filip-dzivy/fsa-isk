@@ -25,9 +25,9 @@ public class LoanMapper {
 
         LoanDto dto = new LoanDto();
         dto.setId(entity.getId());
-        dto.setLoanedTo(memberMapper.toDto(entity.getLoanedTo()));
-        dto.setBook(bookMapper.toDto(entity.getBook()));
-        dto.setCreatedBy(memberMapper.toDto(entity.getCreatedBy()));
+        dto.setLoanedTo(memberMapper.toDtoWithoutFines(entity.getLoanedTo()));
+        dto.setBook(bookMapper.toDtoBasic(entity.getBook()));
+        dto.setCreatedBy(memberMapper.toDtoWithoutFines(entity.getCreatedBy()));
         dto.setLoanDate(entity.getLoanDate());
         dto.setDueDate(entity.getDueDate());
         dto.setReturnDate(entity.getReturnDate());

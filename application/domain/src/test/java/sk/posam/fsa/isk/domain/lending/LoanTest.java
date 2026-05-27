@@ -105,4 +105,50 @@ public class LoanTest {
         assertEquals(0, loanNotOverdue.daysOverdue());
     }
 
+    @Test
+    void validateForCreationFailsWhenCreatorIsNotLibrarian() {
+        Member fakeCreator = new Member(3L, new Email("a@a.sk"), "A", "A", MemberRole.MEMBER);
+        Loan loan = new Loan(loanedTo, book, fakeCreator);
+        assertThrows(DomainException.class, loan::validateForCreation);
+    }
+
+    @Test
+    void validateForCreationFailsWhenLoanedToIsNotMember() {
+        Member loanedToLibrarian = new Member(4L, new Email("b@b.sk"), "B", "B", MemberRole.LIBRARIAN);
+        Loan loan = new Loan(loanedToLibrarian, book, createdBy);
+        assertThrows(DomainException.class, loan::validateForCreation);
+    }
+
+    @Test
+    void validateForCreationFailsWhenBookIsNull() {
+        Loan loan = new Loan(loanedTo, null, createdBy);
+        assertThrows(DomainException.class, loan::validateForCreation);
+    }
+
+    @Test
+    void renewByDifferentMemberThrowsForbidden() {
+        Member other = new Member(5L, new Email("c@c.sk"), "C", "C", MemberRole.MEMBER);
+        DomainException ex = assertThrows(DomainException.class, () -> loanNotOverdue.renew(other));
+        assertEquals(DomainException.Type.FORBIDDEN, ex.getType());
+    }
+
+    @Test
+    void markOverdueDoesNothingForReturnedLoan() {
+        loanNotOverdue.returnBook();
+        loanNotOverdue.markOverdue();
+        assertEquals(LoanStatus.RETURNED, loanNotOverdue.getStatus());
+    }
+
+    @Test
+    void markOverdueDoesNothingForActiveNonOverdueLoan() {
+        loanNotOverdue.markOverdue();
+        assertEquals(LoanStatus.ACTIVE, loanNotOverdue.getStatus());
+    }
+
+    @Test
+    void daysOverdueIsZeroForLoanReturnedBeforeDueDate() {
+        Loan loan = factory.createLoan(loanedTo, book, createdBy, LocalDate.now().minusDays(5), 14);
+        loan.returnBook();
+        assertEquals(0, loan.daysOverdue());
+    }
 }

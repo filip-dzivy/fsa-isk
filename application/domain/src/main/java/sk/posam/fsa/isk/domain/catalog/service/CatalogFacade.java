@@ -4,6 +4,7 @@ import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
 import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
+import sk.posam.fsa.isk.domain.catalog.query.BookView;
 
 import java.util.Collection;
 
@@ -12,6 +13,8 @@ public interface CatalogFacade {
     void create(Book book);
 
     Book find(ISBN isbn);
+
+    BookView findDetail(ISBN isbn);
 
     Collection<Book> findAll();
 
@@ -23,11 +26,13 @@ public interface CatalogFacade {
 
     Collection<Book> search(String title, String author, BookGenre genre);
 
+    Collection<BookView> searchForListing(String title, String author, BookGenre genre);
+
     void delete(ISBN isbn);
 
-    Book addCopies(ISBN isbn, int count);
+    BookView addCopies(ISBN isbn, int count);
 
-    Book updateDescription(ISBN isbn, String description);
+    BookView updateDescription(ISBN isbn, String description);
 
     BookPhoto addPhoto(ISBN isbn, byte[] bytes, String contentType, String originalFilename, String caption);
 

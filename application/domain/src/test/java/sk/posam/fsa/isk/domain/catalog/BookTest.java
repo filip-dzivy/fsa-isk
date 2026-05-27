@@ -108,5 +108,84 @@ public class BookTest {
     void equalityIsBasedOnISBN(){
         Book a = new Book(isbn, "bookA", "bookA", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008),1);
         Book b = new Book(isbn, "bookb", "bookb", BookGenre.SCIENCE, "PublisherB", Year.of(2018),10);
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+
+        Book c = new Book(new ISBN("0306406152"), "bookA", "bookA", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008),1);
+        assertNotEquals(a, c);
+    }
+
+    @Test
+    void nullGenreDefaultsToOther() {
+        Book b = new Book(isbn, "Title", "Author", null, "Pub", Year.of(2008), 1);
+        assertEquals(BookGenre.OTHER, b.getGenre());
+    }
+
+    @Test
+    void constructorValidatesIsbn() {
+        assertThrows(DomainException.class,
+                () -> new Book(null, "Title", "Author", BookGenre.TECHNOLOGY, "Prentice Hall", Year.of(2008), 1));
+    }
+
+    @Test
+    void updateDescriptionAcceptsValidText() {
+        book.updateDescription("Krátky popis knihy.");
+        assertEquals("Krátky popis knihy.", book.getDescription());
+    }
+
+    @Test
+    void updateDescriptionTreatsNullAndBlankAsCleared() {
+        book.updateDescription("Niečo");
+        book.updateDescription(null);
+        assertNull(book.getDescription());
+
+        book.updateDescription("Niečo iné");
+        book.updateDescription("   ");
+        assertNull(book.getDescription());
+    }
+
+    @Test
+    void updateDescriptionTooLongThrows() {
+        String tooLong = "x".repeat(Book.MAX_DESCRIPTION_LENGTH + 1);
+        assertThrows(DomainException.class, () -> book.updateDescription(tooLong));
+    }
+
+    @Test
+    void addPhotoHappyPathSetsPosition() {
+        BookPhoto p1 = book.addPhoto("https://example.com/1.jpg", "key1", "obal");
+        BookPhoto p2 = book.addPhoto("https://example.com/2.jpg", "key2", null);
+        assertEquals(0, p1.getPosition());
+        assertEquals(1, p2.getPosition());
+        assertEquals(2, book.getPhotos().size());
+    }
+
+    @Test
+    void addPhotoOverLimitThrows() {
+        for (int i = 0; i < Book.MAX_PHOTOS; i++) {
+            book.addPhoto("https://example.com/" + i + ".jpg", "key" + i, null);
+        }
+        DomainException ex = assertThrows(DomainException.class,
+                () -> book.addPhoto("https://example.com/x.jpg", "keyX", null));
+        assertEquals(DomainException.Type.CONFLICT, ex.getType());
+    }
+
+    @Test
+    void removePhotoNotFoundThrows() {
+        book.addPhoto("https://example.com/1.jpg", "key1", null);
+        DomainException ex = assertThrows(DomainException.class, () -> book.removePhoto(999L));
+        assertEquals(DomainException.Type.NOT_FOUND, ex.getType());
+    }
+
+    @Test
+    void getPhotosReturnsSortedByPosition() {
+        BookPhoto p1 = book.addPhoto("https://example.com/1.jpg", "key1", null);
+        BookPhoto p2 = book.addPhoto("https://example.com/2.jpg", "key2", null);
+        p1.setPosition(5);
+        p2.setPosition(1);
+        java.util.List<BookPhoto> photos = book.getPhotos();
+        // Equals on BookPhoto is id-based and all in-memory photos share id=0,
+        // so we verify ordering by url instead.
+        assertEquals("https://example.com/2.jpg", photos.get(0).getUrl());
+        assertEquals("https://example.com/1.jpg", photos.get(1).getUrl());
     }
 }

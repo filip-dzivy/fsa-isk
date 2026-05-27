@@ -8,7 +8,6 @@ import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.service.CatalogFacade;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.reservation.service.ReservationFacade;
-import sk.posam.fsa.isk.domain.shared.Transactional;
 import sk.posam.fsa.isk.mapper.ReservationMapper;
 import sk.posam.fsa.isk.rest.api.ReservationsApi;
 import sk.posam.fsa.isk.rest.dto.CreateReservationRequestDto;
@@ -35,7 +34,6 @@ public class ReservationRestController implements ReservationsApi {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Void> cancelReservation(Long id) {
         Member currentMember = currentUserDetailService.getFullCurrentMember();
         reservationFacade.cancel(reservationFacade.find(id), currentMember);
@@ -43,7 +41,6 @@ public class ReservationRestController implements ReservationsApi {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<Void> createReservation(CreateReservationRequestDto dto) {
         Member requestingMember = currentUserDetailService.getFullCurrentMember();
         Book book = catalogFacade.find(new ISBN(dto.getIsbn()));
@@ -52,7 +49,6 @@ public class ReservationRestController implements ReservationsApi {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ResponseEntity<List<ReservationDto>> getAllReservations(Long memberId) {
         Member requestingMember = currentUserDetailService.getFullCurrentMember();
         return ResponseEntity.ok(reservationMapper.toDto(reservationFacade.findVisible(requestingMember, memberId)));
