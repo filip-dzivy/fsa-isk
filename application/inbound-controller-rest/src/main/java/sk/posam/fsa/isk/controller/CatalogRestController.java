@@ -41,6 +41,7 @@ public class CatalogRestController implements BooksApi {
 
 
     @Override
+    @Transactional
     public ResponseEntity<Void> createBook(CreateBookRequestDto createBookRequestDto) {
         Book book = bookMapper.toBook(createBookRequestDto);
         catalogFacade.create(book);
@@ -48,12 +49,14 @@ public class CatalogRestController implements BooksApi {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<List<BookDto>> getAllBooks(String title, String author, BookGenreDto genre) {
         BookGenre bookGenre = genre != null ? BookGenre.valueOf(genre.name()) : null;
         return ResponseEntity.ok(bookMapper.toDto(catalogFacade.search(title, author, bookGenre)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ResponseEntity<BookDto> getBookByIsbn(String isbn) {
         Book book = catalogFacade.find(new ISBN(isbn));
         return ResponseEntity.ok(bookMapper.toDto(book));
