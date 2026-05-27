@@ -3,13 +3,14 @@ package sk.posam.fsa.isk.mapper;
 import org.springframework.stereotype.Component;
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
+import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.reservation.Reservation;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.rest.dto.BookDto;
 import sk.posam.fsa.isk.rest.dto.BookGenreDto;
+import sk.posam.fsa.isk.rest.dto.BookPhotoDto;
 import sk.posam.fsa.isk.rest.dto.CreateBookRequestDto;
-import sk.posam.fsa.isk.rest.dto.ReservationDto;
 
 import java.time.Year;
 import java.util.Collection;
@@ -53,6 +54,18 @@ public class BookMapper {
         dto.setTotalCopies(entity.getTotalCopies());
         dto.setAvailableCopies(entity.getAvailableCopies());
         dto.setReservedCopies(reservedCopies);
+        dto.setDescription(entity.getDescription());
+        dto.setPhotos(entity.getPhotos().stream().map(this::toPhotoDto).toList());
+        return dto;
+    }
+
+    public BookPhotoDto toPhotoDto(BookPhoto photo) {
+        if (photo == null) return null;
+        BookPhotoDto dto = new BookPhotoDto();
+        dto.setId(photo.getId());
+        dto.setUrl(photo.getUrl());
+        dto.setCaption(photo.getCaption());
+        dto.setPosition(photo.getPosition());
         return dto;
     }
 
@@ -61,7 +74,7 @@ public class BookMapper {
             return null;
         }
 
-        return new Book(
+        Book book = new Book(
                 new ISBN(dto.getIsbn()),
                 dto.getTitle(),
                 dto.getAuthor(),
@@ -70,5 +83,9 @@ public class BookMapper {
                 Year.of(dto.getPublicationYear()),
                 dto.getTotalCopies()
         );
+        if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
+            book.updateDescription(dto.getDescription());
+        }
+        return book;
     }
 }

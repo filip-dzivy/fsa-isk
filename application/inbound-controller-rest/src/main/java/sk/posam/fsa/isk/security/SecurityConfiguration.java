@@ -29,6 +29,9 @@ class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/books/*/copies").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/books/*/description").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.POST, "/books/*/photos").hasAnyRole("ADMIN", "LIBRARIAN")
+                        .requestMatchers(HttpMethod.DELETE, "/books/*/photos/*").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers(HttpMethod.GET, "/books/**").authenticated()
                         // Members
                         .requestMatchers(HttpMethod.POST, "/members").hasRole("ADMIN")

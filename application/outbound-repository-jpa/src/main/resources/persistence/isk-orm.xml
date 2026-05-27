@@ -42,6 +42,38 @@
             <basic name="availableCopies">
                 <column name="available_copies" nullable="false"/>
             </basic>
+            <basic name="description">
+                <column name="description" column-definition="TEXT"/>
+            </basic>
+            <one-to-many name="photos"
+                         target-entity="sk.posam.fsa.isk.domain.catalog.BookPhoto">
+                <join-column name="book_id" nullable="false"/>
+                <cascade><cascade-all/></cascade>
+                <order-by>position ASC</order-by>
+            </one-to-many>
+        </attributes>
+    </entity>
+
+    <!-- BOOK PHOTO -->
+    <entity class="sk.posam.fsa.isk.domain.catalog.BookPhoto" access="FIELD">
+        <table name="book_photo"/>
+        <attributes>
+            <id name="id">
+                <column name="book_photo_id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="url">
+                <column name="url" nullable="false"/>
+            </basic>
+            <basic name="storageKey">
+                <column name="storage_key" nullable="false"/>
+            </basic>
+            <basic name="caption">
+                <column name="caption"/>
+            </basic>
+            <basic name="position">
+                <column name="position" nullable="false"/>
+            </basic>
         </attributes>
     </entity>
 

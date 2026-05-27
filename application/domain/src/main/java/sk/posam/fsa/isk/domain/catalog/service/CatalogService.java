@@ -2,6 +2,7 @@ package sk.posam.fsa.isk.domain.catalog.service;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
+import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.BookRepository;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 import sk.posam.fsa.isk.domain.catalog.event.BookCopiesAddedEvent;
@@ -9,6 +10,7 @@ import sk.posam.fsa.isk.domain.lending.LoanRepository;
 import sk.posam.fsa.isk.domain.reservation.ReservationRepository;
 import sk.posam.fsa.isk.domain.shared.DomainEventPublisher;
 import sk.posam.fsa.isk.domain.shared.DomainException;
+import sk.posam.fsa.isk.domain.shared.PhotoStoragePort;
 
 import java.text.CollationElementIterator;
 import java.util.Collection;
@@ -20,15 +22,18 @@ public class CatalogService implements CatalogFacade{
     private final LoanRepository loanRepository;
     private final ReservationRepository reservationRepository;
     private final DomainEventPublisher eventPublisher;
+    private final PhotoStoragePort photoStoragePort;
 
     public CatalogService(BookRepository bookRepository,
                           LoanRepository loanRepository,
                           ReservationRepository reservationRepository,
-                          DomainEventPublisher eventPublisher){
+                          DomainEventPublisher eventPublisher,
+                          PhotoStoragePort photoStoragePort){
         this.bookRepository = bookRepository;
         this.loanRepository = loanRepository;
         this.reservationRepository = reservationRepository;
         this.eventPublisher = eventPublisher;
+        this.photoStoragePort = photoStoragePort;
     }
 
     @Override
@@ -89,6 +94,9 @@ public class CatalogService implements CatalogFacade{
                     DomainException.Type.CONFLICT,
                     "Knihu nemožno odstrániť, má aktívne rezervácie.");
         }
+        for (BookPhoto photo : book.getPhotos()) {
+            photoStoragePort.delete(photo.getStorageKey());
+        }
         bookRepository.delete(book);
     }
 
@@ -99,5 +107,36 @@ public class CatalogService implements CatalogFacade{
         bookRepository.save(book);
         eventPublisher.publish(new BookCopiesAddedEvent(book, count));
         return book;
+    }
+
+    @Override
+    public Book updateDescription(ISBN isbn, String description) {
+        Book book = find(isbn);
+        book.updateDescription(description);
+        bookRepository.save(book);
+        return book;
+    }
+
+    @Override
+    public BookPhoto addPhoto(ISBN isbn, byte[] bytes, String contentType, String originalFilename, String caption) {
+        Book book = find(isbn);
+        PhotoStoragePort.StoredPhoto stored = photoStoragePort.upload(bytes, contentType, originalFilename);
+        BookPhoto photo;
+        try {
+            photo = book.addPhoto(stored.url(), stored.storageKey(), caption);
+        } catch (RuntimeException ex) {
+            photoStoragePort.delete(stored.storageKey());
+            throw ex;
+        }
+        bookRepository.save(book);
+        return photo;
+    }
+
+    @Override
+    public void removePhoto(ISBN isbn, long photoId) {
+        Book book = find(isbn);
+        BookPhoto removed = book.removePhoto(photoId);
+        bookRepository.save(book);
+        photoStoragePort.delete(removed.getStorageKey());
     }
 }

@@ -1,12 +1,17 @@
 package sk.posam.fsa.isk.domain.catalog;
 import sk.posam.fsa.isk.domain.catalog.predicate.*;
-import sk.posam.fsa.isk.domain.catalog.predicate.*;
 import sk.posam.fsa.isk.domain.shared.DomainException;
 
 import java.time.Year;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 
 public class Book {
+
+    public static final int MAX_PHOTOS = 5;
+    public static final int MAX_DESCRIPTION_LENGTH = 2000;
 
     private Long id;
     private ISBN isbn;
@@ -17,6 +22,8 @@ public class Book {
     private Year publicationYear;
     private int totalCopies;
     private int availableCopies;
+    private String description;
+    private List<BookPhoto> photos = new ArrayList<>();
 
     //JPA
     public Book(){}
@@ -65,6 +72,50 @@ public class Book {
 
     public boolean isAvailable(){
         return availableCopies > 0;
+    }
+
+    public void updateDescription(String newDescription) {
+        if (newDescription != null && newDescription.length() > MAX_DESCRIPTION_LENGTH) {
+            throw new DomainException(
+                    DomainException.Type.VALIDATION,
+                    "Popis môže mať najviac " + MAX_DESCRIPTION_LENGTH + " znakov.");
+        }
+        this.description = (newDescription == null || newDescription.isBlank()) ? null : newDescription;
+    }
+
+    public BookPhoto addPhoto(String url, String storageKey, String caption) {
+        if (photos.size() >= MAX_PHOTOS) {
+            throw new DomainException(
+                    DomainException.Type.CONFLICT,
+                    "Kniha môže mať najviac " + MAX_PHOTOS + " fotiek.");
+        }
+        BookPhoto photo = new BookPhoto(url, storageKey, caption, photos.size());
+        photos.add(photo);
+        return photo;
+    }
+
+    public BookPhoto removePhoto(long photoId) {
+        BookPhoto removed = photos.stream()
+                .filter(p -> p.getId() == photoId)
+                .findFirst()
+                .orElseThrow(() -> new DomainException(
+                        DomainException.Type.NOT_FOUND,
+                        "Fotka s ID " + photoId + " nie je súčasťou knihy."));
+        photos.remove(removed);
+        for (int i = 0; i < photos.size(); i++) {
+            photos.get(i).setPosition(i);
+        }
+        return removed;
+    }
+
+    public List<BookPhoto> getPhotos() {
+        return photos.stream()
+                .sorted(Comparator.comparingInt(BookPhoto::getPosition))
+                .toList();
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public String getTitle() {return title;}

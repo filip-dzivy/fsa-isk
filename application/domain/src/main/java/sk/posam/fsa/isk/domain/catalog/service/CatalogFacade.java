@@ -2,6 +2,7 @@ package sk.posam.fsa.isk.domain.catalog.service;
 
 import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.catalog.BookGenre;
+import sk.posam.fsa.isk.domain.catalog.BookPhoto;
 import sk.posam.fsa.isk.domain.catalog.ISBN;
 
 import java.util.Collection;
@@ -25,4 +26,10 @@ public interface CatalogFacade {
     void delete(ISBN isbn);
 
     Book addCopies(ISBN isbn, int count);
+
+    Book updateDescription(ISBN isbn, String description);
+
+    BookPhoto addPhoto(ISBN isbn, byte[] bytes, String contentType, String originalFilename, String caption);
+
+    void removePhoto(ISBN isbn, long photoId);
 }
