@@ -456,6 +456,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /members/me:
+    get:
+      summary: Aktuálne prihlásený člen (z JWT)
+      operationId: getCurrentMember
+      tags:
+        - Member
+      responses:
+        '200':
+          description: Profil aktuálne prihláseného člena
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Aktuálny užívateľ nie je registrovaný ako člen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /members/{id}:
     get:
       summary: Získanie člena podľa ID

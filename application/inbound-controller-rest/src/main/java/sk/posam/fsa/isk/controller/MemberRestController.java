@@ -9,6 +9,7 @@ import sk.posam.fsa.isk.mapper.MemberMapper;
 import sk.posam.fsa.isk.rest.api.MembersApi;
 import sk.posam.fsa.isk.rest.dto.CreateMemberRequestDto;
 import sk.posam.fsa.isk.rest.dto.MemberDto;
+import sk.posam.fsa.isk.security.CurrentUserDetailService;
 
 import java.util.List;
 
@@ -17,10 +18,22 @@ public class MemberRestController implements MembersApi {
 
     private final MemberFacade memberFacade;
     private final MemberMapper memberMapper;
+    private final CurrentUserDetailService currentUserDetailService;
 
-    public MemberRestController(MemberFacade memberFacade, MemberMapper memberMapper) {
+    public MemberRestController(MemberFacade memberFacade,
+                                MemberMapper memberMapper,
+                                CurrentUserDetailService currentUserDetailService) {
         this.memberFacade = memberFacade;
         this.memberMapper = memberMapper;
+        this.currentUserDetailService = currentUserDetailService;
+    }
+
+    @Override
+    public ResponseEntity<MemberDto> getCurrentMember() {
+        Member me = currentUserDetailService.getFullCurrentMember();
+        // Re-fetch cez find(id) aby boli fines eager-loaded (find(email) ich nenačíta).
+        Member withFines = memberFacade.find(me.getId());
+        return ResponseEntity.ok(memberMapper.toDto(withFines));
     }
 
     @Override

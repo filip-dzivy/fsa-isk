@@ -25,16 +25,17 @@ class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
-                        // Books
+                        // Books — verejné čítanie, ADMIN/LIBRARIAN write
                         .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/books/*/copies").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/books/*/description").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers(HttpMethod.POST, "/books/*/photos").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers(HttpMethod.DELETE, "/books/*/photos/*").hasAnyRole("ADMIN", "LIBRARIAN")
-                        .requestMatchers(HttpMethod.GET, "/books/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/books", "/books/**").permitAll()
                         // Members
                         .requestMatchers(HttpMethod.POST, "/members").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/members/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/members/**").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/members/*/membership/renew").hasAnyRole("ADMIN", "LIBRARIAN")
                         .requestMatchers("/members/*/fines/*/pay").hasAnyRole("ADMIN", "LIBRARIAN")

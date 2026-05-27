@@ -26,6 +26,14 @@ package shared {
     class "«interface»\nDomainEventPublisher" as DomainEventPublisher <<interface>> {
         + publish(DomainEvent): void
     }
+    class "«interface»\nNotificationPort" as NotificationPort <<interface>> {
+        + notifyReservationReady(Member, Book): void
+        + notifyMembershipExpiringSoon(Member, int daysLeft): void
+    }
+    class "«interface»\nPhotoStoragePort" as PhotoStoragePort <<interface>> {
+        + upload(byte[], String contentType, String key): String
+        + delete(String key): void
+    }
     class "«exception»\nDomainException" as DomainException {
         - type: Type
         - details: List<String>
@@ -46,13 +54,27 @@ package catalog {
         - publicationYear: Year
         - totalCopies: int
         - availableCopies: int
+        - description: String
+        - photos: List<BookPhoto>
         --
+        + {static} MAX_PHOTOS = 5
+        + {static} MAX_DESCRIPTION_LENGTH = 2000
         + Book(ISBN, String, String, BookGenre, String, Year, int)
         + isAvailable(): boolean
         + borrowCopy(): void
         + returnCopy(): void
         + addCopies(int): void
+        + updateDescription(String): void
+        + addPhoto(String url, String key, String caption): BookPhoto
+        + removePhoto(long photoId): BookPhoto
         + validateForCreation(): void
+    }
+    class "«entity»\nBookPhoto" as BookPhoto <<entity>> {
+        - id: long
+        - url: String
+        - storageKey: String
+        - caption: String
+        - position: int
     }
     class "«value object»\nISBN" as ISBN <<valueObject>> {
         - value: String
@@ -61,44 +83,21 @@ package catalog {
         + validate(): boolean
     }
     class "«enumeration»\nBookGenre" as BookGenre <<enumeration>> {
-        FICTION
-        SCIENCE_FICTION
-        FANTASY
-        MYSTERY
-        THRILLER
-        HORROR
-        ROMANCE
-        HISTORICAL_FICTION
-        ADVENTURE
-        NOVEL
-        BIOGRAPHY
-        AUTOBIOGRAPHY
-        HISTORY
-        SCIENCE
-        TECHNOLOGY
-        PHILOSOPHY
-        PSYCHOLOGY
-        SELF_HELP
-        BUSINESS
-        POLITICS
-        TRUE_CRIME
-        POETRY
-        DRAMA
-        CHILDREN
-        YOUNG_ADULT
-        REFERENCE
-        TRAVEL
-        COOKBOOK
-        ART
-        RELIGION
-        LANGUAGE
-        OTHER
+        FICTION, SCIENCE_FICTION
+        FANTASY, MYSTERY, THRILLER
+        HORROR, ROMANCE
+        HISTORICAL_FICTION, ADVENTURE
+        NOVEL, BIOGRAPHY, AUTOBIOGRAPHY
+        HISTORY, SCIENCE, TECHNOLOGY
+        PHILOSOPHY, PSYCHOLOGY, SELF_HELP
+        BUSINESS, POLITICS, TRUE_CRIME
+        POETRY, DRAMA, CHILDREN
+        YOUNG_ADULT, REFERENCE, TRAVEL
+        COOKBOOK, ART, RELIGION
+        LANGUAGE, OTHER
     }
     class "«interface»\nBookRepository" as BookRepository <<interface>> {
         + find(ISBN): Optional<Book>
-        + findByTitle(String): Collection<Book>
-        + findByAuthor(String): Collection<Book>
-        + findByGenre(BookGenre): Collection<Book>
         + findAll(): Collection<Book>
         + save(Book): void
         + delete(Book): void
@@ -107,23 +106,79 @@ package catalog {
         + create(Book): void
         + find(ISBN): Book
         + findAll(): Collection<Book>
-        + findByTitle(String): Collection<Book>
-        + findByAuthor(String): Collection<Book>
-        + findByGenre(BookGenre): Collection<Book>
+        + delete(ISBN): void
+        + addCopies(ISBN, int): void
+        + updateDescription(ISBN, String): void
+        + addPhoto(ISBN, byte[], String, String, String): BookPhoto
+        + removePhoto(ISBN, long photoId): void
     }
     class "«service»\nCatalogService" as CatalogService <<service>> {
         - bookRepository: BookRepository
+        - photoStoragePort: PhotoStoragePort
         --
-        + CatalogService(BookRepository)
+        + CatalogService(BookRepository, PhotoStoragePort)
     }
     Book "1" *-- "1" ISBN : -isbn
     Book "1" -- "1" BookGenre : -genre
+    Book "1" *-- "*" BookPhoto : -photos
     BookRepository ..> Book
     CatalogService ..|> CatalogFacade
     CatalogService ..> BookRepository : uses
+    CatalogService ..> PhotoStoragePort : uses
 }
 
-package ppl {
+package announcement {
+    class "«entity»\nAnnouncement" as Announcement <<entity>> {
+        - id: long
+        - title: String
+        - content: String
+        - publishedAt: LocalDateTime
+        - author: Member
+        - photos: List<AnnouncementPhoto>
+        --
+        + {static} MAX_PHOTOS = 5
+        + Announcement(String, String, Member)
+        + update(String, String): void
+        + addPhoto(String url, String key, String caption): AnnouncementPhoto
+        + removePhoto(long photoId): AnnouncementPhoto
+        + validateForCreation(): void
+    }
+    class "«entity»\nAnnouncementPhoto" as AnnouncementPhoto <<entity>> {
+        - id: long
+        - url: String
+        - storageKey: String
+        - caption: String
+        - position: int
+    }
+    class "«interface»\nAnnouncementRepository" as AnnouncementRepository <<interface>> {
+        + find(long id): Optional<Announcement>
+        + findAll(): List<Announcement>
+        + save(Announcement): void
+        + delete(long id): void
+    }
+    class "«interface»\nAnnouncementFacade" as AnnouncementFacade <<interface>> {
+        + create(String title, String content, Member author): Announcement
+        + update(long id, String title, String content): Announcement
+        + find(long id): Announcement
+        + findAll(): List<Announcement>
+        + delete(long id): void
+        + addPhoto(long, byte[], String, String, String): AnnouncementPhoto
+        + removePhoto(long announcementId, long photoId): void
+    }
+    class "«service»\nAnnouncementService" as AnnouncementService <<service>> {
+        - announcementRepository: AnnouncementRepository
+        - photoStoragePort: PhotoStoragePort
+        --
+        + AnnouncementService(AnnouncementRepository, PhotoStoragePort)
+    }
+    Announcement "1" *-- "*" AnnouncementPhoto : -photos
+    AnnouncementRepository ..> Announcement
+    AnnouncementService ..|> AnnouncementFacade
+    AnnouncementService ..> AnnouncementRepository : uses
+    AnnouncementService ..> PhotoStoragePort : uses
+}
+
+package member {
     class "«entity»\nMember" as MemberE <<entity>> {
         - id: long
         - email: Email
@@ -159,7 +214,7 @@ package ppl {
         + getStatus(): MembershipStatus
     }
     class "«enumeration»\nMemberRole" as MemberRole <<enumeration>> {
-        "MEMBER"
+        MEMBER
         LIBRARIAN
         ADMIN
     }
@@ -171,7 +226,8 @@ package ppl {
     class "«interface»\nMemberRepository" as MemberRepository <<interface>> {
         + find(long id): Optional<Member>
         + find(Email): Optional<Member>
-        + findAll(): Collection<Member>
+        + findWithFines(long id): Optional<Member>
+        + findAllWithFines(): Collection<Member>
         + save(Member): void
         + delete(long id): void
     }
@@ -180,6 +236,7 @@ package ppl {
         + find(long id): Member
         + find(Email): Member
         + findAll(): Collection<Member>
+        + findOrProvision(Email, String, String): Member
         + renewMembership(long id): void
         + payFine(long memberId, long fineId): void
         + waiveFine(long memberId, long fineId): void
@@ -223,8 +280,6 @@ package finance {
         + add(Money): Money
         + multiply(long): Money
         + isGreaterThanZero(): boolean
-        + getAmount(): BigDecimal
-        + getCurrency(): String
     }
     class "«enumeration»\nFineStatus" as FineStatus <<enumeration>> {
         PENDING
@@ -290,9 +345,6 @@ package lending {
     }
     class "«event»\nBookReturnedEvent" as BookReturnedEvent <<event>> {
         - book: Book
-        --
-        + BookReturnedEvent(Book)
-        + getBook(): Book
     }
     class "«interface»\nLoanFacade" as LoanFacade <<interface>> {
         + create(Member, Book, Member): void
@@ -304,16 +356,9 @@ package lending {
         + returnBook(Loan): void
     }
     class "«service»\nLoanService" as LoanService <<service>> {
-        - bookRepository: BookRepository
-        - memberRepository: MemberRepository
-        - loanRepository: LoanRepository
-        - loanFactory: LoanFactory
-        - fineRepository: FineRepository
-        - fineFactory: FineFactory
-        - eventPublisher: DomainEventPublisher
-        - finesDailyRate: Money
-        --
-        + LoanService(BookRepository, MemberRepository, LoanRepository,\n  LoanFactory, FineRepository, DomainEventPublisher, Money, FineFactory)
+        - bookRepository, memberRepository, loanRepository
+        - loanFactory, fineRepository, fineFactory
+        - eventPublisher, finesDailyRate: Money
     }
     Loan "1" -- "1" LoanStatus : -status
     LoanRepository ..> Loan
@@ -361,10 +406,6 @@ package reservation {
         + findAll(): Collection<Reservation>
         + save(Reservation): void
     }
-    class "«interface»\nNotificationPort" as NotificationPort <<interface>> {
-        + notifyReservationReady(Member, Book): void
-        + notifyMembershipExpiringSoon(Member, int daysLeft): void
-    }
     class "«interface»\nReservationFacade" as ReservationFacade <<interface>> {
         + create(Member, Book): void
         + cancel(Reservation, Member): void
@@ -379,8 +420,6 @@ package reservation {
     class "«service»\nReservationService" as ReservationService <<service>> {
         - reservationRepository: ReservationRepository
         - notificationPort: NotificationPort
-        --
-        + ReservationService(ReservationRepository, NotificationPort)
     }
     Reservation "1" -- "1" ReservationStatus : -status
     ReservationRepository ..> Reservation
@@ -389,6 +428,7 @@ package reservation {
     ReservationService ..> NotificationPort : uses
 }
 
+' ── Cross-package relácie ──
 MemberE "1" o-- "*" Fine : -fines
 Fine "*" --> "1" Loan : -loan
 Fine "*" --> "1" MemberE : -member
@@ -399,5 +439,7 @@ Loan "*" --> "1" MemberE : -createdBy
 
 Reservation "*" --> "1" MemberE : -createdBy
 Reservation "*" --> "1" Book : -book
+
+Announcement "*" --> "1" MemberE : -author
 
 @enduml
