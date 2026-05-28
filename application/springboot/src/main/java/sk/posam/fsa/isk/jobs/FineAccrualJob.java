@@ -15,7 +15,7 @@ import sk.posam.fsa.isk.domain.lending.LoanRepository;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
 
-import java.util.List;
+import java.util.Collection;
 
 @Component
 public class FineAccrualJob {
@@ -44,9 +44,7 @@ public class FineAccrualJob {
     @SchedulerLock(name = "accrueOverdueFines", lockAtLeastFor = "PT1M", lockAtMostFor = "PT15M")
     @Transactional
     public Integer accrueOverdueFines() {
-        List<Loan> overdue = loanRepository.findUnreturnedLoans().stream()
-                .filter(Loan::isOverdue)
-                .toList();
+        Collection<Loan> overdue = loanRepository.findOverdueLoans();
         log.info("FineAccrualJob: found {} overdue loans to process", overdue.size());
         overdue.forEach(this::processLoan);
         log.info("FineAccrualJob: processed {} overdue loans", overdue.size());
@@ -54,9 +52,6 @@ public class FineAccrualJob {
     }
 
     private void processLoan(Loan loan) {
-        loan.markOverdue();
-        loanRepository.save(loan);
-
         fineRepository.findPendingByLoan(loan)
                 .ifPresentOrElse(
                         existing -> {

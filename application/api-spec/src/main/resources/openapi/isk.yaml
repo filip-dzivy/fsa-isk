@@ -744,7 +744,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unathorized
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -825,7 +825,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unathorized
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -878,7 +878,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
-          description: Unathorized
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -1526,7 +1526,6 @@ components:
       enum:
         - ACTIVE
         - EXPIRED
-        - SUSPENDED
 
     FineStatus:
       type: string

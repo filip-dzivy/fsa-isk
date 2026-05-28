@@ -358,6 +358,93 @@ Odstráni fotku oznamu (z DB aj z Blob storage).
 
 ---
 
+## Administrácia — `/admin`
+
+Všetky `/admin/**` endpointy sú prístupné výhradne pre rolu `ADMIN`.
+
+### Manuálne spúšťanie jobov — `/admin/jobs`
+
+Joby bežia automaticky každú noc cez ShedLock. Tieto endpointy ich umožňujú spustiť okamžite (napr. pri výpadku cron-u alebo na overenie logiky).
+
+Odpoveď:
+```json
+{
+  "job": "fine-accrual",
+  "executedAt": "2026-05-28T00:00:00.123+02:00",
+  "processed": 5
+}
+```
+
+### `POST /admin/jobs/loan-status`
+Prejde nevrátené výpožičky a tie po termíne označí ako `OVERDUE`. Beží automaticky o 23:55.
+
+---
+
+### `POST /admin/jobs/fine-accrual`
+Prejde výpožičky v stave `OVERDUE` a pripočíta/aktualizuje pokutu (0,50 € / deň). Beží automaticky o 00:00.
+
+---
+
+### `POST /admin/jobs/reservation-expiration`
+Označí rezervácie v stave `READY_FOR_PICKUP` po 3-dňovej lehote ako `EXPIRED` a notifikuje ďalšieho v rade. Beží automaticky o 00:05.
+
+---
+
+### `POST /admin/jobs/membership-expiry-notifications`
+Pošle e-mail členom 7 dní pred expiráciou členstva. Beží automaticky o 00:10.
+
+---
+
+### `POST /admin/jobs/loan-due-notifications`
+Pošle e-mail čitateľom 3 dni pred koncom výpožičky. Beží automaticky o 00:15.
+
+---
+
+### `POST /admin/jobs/membership-expiration`
+Označí členstvá po dátume expirácie ako `EXPIRED`. Beží automaticky o 00:20.
+
+---
+
+### Admin overrides — `/admin/overrides`
+
+Endpointy na manuálnu zmenu dátumov pre účely debugovania a recovery.
+
+### `POST /admin/overrides/loans/{id}/due-date`
+Zmení termín vrátenia výpožičky.
+
+**Request body:**
+```json
+{ "date": "2026-06-15" }
+```
+
+**Odpovede:** `200 OK` — `{ "loanId": 1, "dueDate": "2026-06-15" }` | `400`, `401`, `403`, `404`
+
+---
+
+### `POST /admin/overrides/members/{id}/membership-expiry`
+Zmení dátum expirácie členstva.
+
+**Request body:**
+```json
+{ "date": "2027-05-28" }
+```
+
+**Odpovede:** `200 OK` — `{ "memberId": 1, "expiryDate": "2027-05-28" }` | `400`, `401`, `403`, `404`
+
+---
+
+### `POST /admin/overrides/reservations/{id}/created-on`
+Zmení dátum vytvorenia rezervácie (ovplyvní výpočet expirácie READY_FOR_PICKUP stavu).
+
+**Request body:**
+```json
+{ "date": "2026-05-25" }
+```
+
+**Odpovede:** `200 OK` — `{ "reservationId": 1, "createdOn": "2026-05-25" }` | `400`, `401`, `403`, `404`
+
+---
+
 ## Prehľad prístupov
 
 | Endpoint | Verejný | ADMIN | LIBRARIAN | MEMBER |
@@ -389,6 +476,8 @@ Odstráni fotku oznamu (z DB aj z Blob storage).
 | `DELETE /announcements/{id}` | — | ✓ | ✓ | — |
 | `POST /announcements/{id}/photos` | — | ✓ | ✓ | — |
 | `DELETE /announcements/{id}/photos/{photoId}` | — | ✓ | ✓ | — |
+| `POST /admin/jobs/*` | — | ✓ | — | — |
+| `POST /admin/overrides/*` | — | ✓ | — | — |
 
 ---
 

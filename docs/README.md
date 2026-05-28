@@ -35,10 +35,9 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 - **RQ15** Systém zruší rezerváciu automaticky ak kniha nie je vypožičaná do 3 dní od vrátenia.
 
 ### Členstvo
-- **RQ16** Systém umožní registráciu nových čitateľov.
-- **RQ16a** Systém automaticky vyrobí čitateľský záznam pri prvom prihlásení (cez Keycloak identity).
+- **RQ16** Systém automaticky vyrobí čitateľský záznam pri prvom prihlásení (cez Keycloak identity).
 - **RQ17** Systém zabezpečí sledovanie platnosti členstva.
-- **RQ18** Systém zabezpečí upozornenie čitateľa o blížiacom sa konci členstva (30 dní vopred).
+- **RQ18** Systém zabezpečí upozornenie čitateľa o blížiacom sa konci členstva (7 dní vopred e-mailom).
 - **RQ19** Systém zabezpečí blokovanie výpožičiek od čitateľov s neplatným členstvom.
 - **RQ20** Systém umožní knihovníkovi/administrátorovi obnoviť členstvo.
 - **RQ20a** Systém umožní čitateľovi vidieť stav svojho členstva, dátum expirácie a pokuty.
@@ -55,7 +54,9 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 - **RQ28** Systém umožní pripájať fotografie k oznamom (max 5 fotiek/oznam).
 
 ### Administrácia
-- **RQ25** Systém umožní administrátorovi spravovať používateľské účty.
+- **RQ25** Systém umožní administrátorovi zobraziť a spravovať členov knižnice (obnova členstva, zmena expirácie, úhrada/odpustenie pokút).
+- **RQ25a** Systém umožní administrátorovi manuálne spúšťať plánované úlohy (joby) cez admin panel.
+- **RQ25b** Systém umožní administrátorovi meniť dátumy výpožičiek, členstva a rezervácií (admin override).
 
 ---
 
@@ -85,9 +86,9 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 | **Pojem** | **Anglický názov** | **Definícia** |
 |---|---|---|
 | **Členstvo** | Membership | Evidovaný vzťah čitateľa s knižnicou s definovanou platnosťou (štandardne 12 mesiacov). |
-| **Stav členstva** | Membership Status | Aktuálny stav: `ACTIVE`, `EXPIRED`, `SUSPENDED`. |
+| **Stav členstva** | Membership Status | Aktuálny stav: `ACTIVE`, `EXPIRED`. |
 | **Expirácia členstva** | Membership Expiry | Dátum, ku ktorému platnosť členstva uplynie. |
-| **Blížiaca sa expirácia** | Expiring Soon | Členstvo, ktorému zostáva menej ako 30 dní platnosti — spúšťa notifikáciu. |
+| **Blížiaca sa expirácia** | Expiring Soon | Členstvo, ktorému zostáva menej ako 30 dní platnosti — zobrazí varovanie vo frontende. E-mailová notifikácia sa posiela 7 dní pred expiráciou. |
 | **Obnova členstva** | Membership Renewal | Predĺženie platnosti členstva o ďalších 12 mesiacov. |
 
 ### Výpožičky
@@ -338,22 +339,22 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 **UC10 — Obnova členstva**
 
-**Účel** Systém umožní adminovi alebo knihovníkovi obnoviť vypršané alebo expirujúce členstvo.
+**Účel** Systém umožní knihovníkovi alebo administrátorovi obnoviť vypršané alebo expirujúce členstvo čitateľa.
 
-**Používateľ** Čitateľ
+**Používateľ** Knihovník, Administrátor
 
 **Vstupné podmienky**
-- Používateľ je prihlásený v systéme.
+- Knihovník alebo administrátor je prihlásený v systéme.
 - Členstvo čitateľa je aktívne s blížiacim sa koncom platnosti, alebo už vypršalo.
 
 **Výstup**
-- Obnovené členstvo s novým dátumom platnosti.
+- Obnovené členstvo s novým dátumom platnosti (+ 12 mesiacov).
 
 **Postup**
-1. Používateľ zvolí „členstvo" alebo klikne na upozornenie o expirujúcom členstve.
-2. Systém zobrazí aktuálny stav členstva a možnosti obnovy.
-3. Používateľ zvolí typ členstva a potvrdí obnovu.
-4. Systém predĺži platnosť členstva a aktualizuje stav.
+1. Knihovník/administrátor otvorí zoznam čitateľov.
+2. Pri čitateľovi s expirujúcim alebo expirovaným členstvom sa zobrazí tlačidlo „Obnoviť".
+3. Knihovník/administrátor klikne na „Obnoviť".
+4. Systém predĺži platnosť členstva o 12 mesiacov a aktualizuje stav na ACTIVE.
 
 ---
 
@@ -389,23 +390,23 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC12 — Registrácia nového čitateľa**
+**UC12 — Registrácia nového čitateľa (auto-provisioning)**
 
-**Účel** Systém umožní registráciu nového čitateľa do systému.
+**Účel** Systém automaticky zaregistruje nového čitateľa pri jeho prvom prihlásení cez Keycloak.
 
-**Používateľ** Administrátor, Knihovník
+**Používateľ** Nový používateľ (registruje sa v Keycloak-u)
 
 **Vstupné podmienky**
-- Administrátor alebo knihovník je prihlásený v systéme.
+- Používateľ má konto v Keycloak-u s priradenou rolou (MEMBER, LIBRARIAN alebo ADMIN).
 
 **Výstup**
-- Vytvorený používateľský účet nového čitateľa s aktívnym členstvom.
+- Automaticky vytvorený záznam člena v systéme s 12-mesačným členstvom.
 
 **Postup**
-1. Administrátor/knihovník zvolí „Registrovať čitateľa".
-2. Vyplní osobné údaje (meno, priezvisko, e-mail) a typ členstva (študent, dospelý, senior).
-3. Systém overí unikátnosť e-mailovej adresy.
-4. Systém vytvorí konto a nastaví platnosť členstva.
+1. Používateľ sa prihlási cez Keycloak (registrácia konta prebieha v Keycloak-u).
+2. Systém pri prvom autentifikovanom requeste rozpozná, že člen ešte nie je v databáze.
+3. Systém automaticky vytvorí záznam člena z JWT claimov (`email`, `given_name`, `family_name`) a priradí mu 12-mesačné členstvo.
+4. Člen môže okamžite používať systém podľa svojej roly.
 
 ---
 
@@ -432,24 +433,28 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
-**UC14 — Správa používateľských účtov administrátorom**
+**UC14 — Správa členov administrátorom/knihovníkom**
 
-**Účel** Systém umožní administrátorovi spravovať používateľské účty.
+**Účel** Systém umožní administrátorovi a knihovníkovi zobraziť a spravovať členov knižnice.
 
-**Používateľ** Administrátor
+**Používateľ** Administrátor, Knihovník
 
 **Vstupné podmienky**
-- Administrátor je prihlásený v systéme.
+- Administrátor alebo knihovník je prihlásený v systéme.
 
 **Výstup**
-- Aktualizovaný, pozastavený alebo odstránený používateľský účet.
+- Prehľad členov so štatistikami a možnosťami správy (obnova členstva, úhrada/odpustenie pokút, zmena expirácie).
 
 **Postup**
-1. Administrátor zvolí „Čitatelia".
-2. Systém zobrazí zoznam používateľov so štatistikami (celkom, aktívne, expirované, s pokutami).
-3. Administrátor klikne na ľubovoľnú stat-card pre rýchle filtrovanie (napr. „S neuhradenými pokutami").
-4. Administrátor zvolí účet a vykoná požadovanú akciu (úprava údajov, zmena role, pozastavenie, odstránenie).
-5. Systém uloží zmeny.
+1. Používateľ zvolí „Čitatelia".
+2. Systém zobrazí zoznam členov so štatistikami (celkom, aktívne členstvá, expirované, s neuhradenými pokutami).
+3. Používateľ klikne na stat-card pre rýchle filtrovanie alebo použije vyhľadávanie podľa mena/e-mailu.
+4. Pri každom členovi sú dostupné akcie podľa stavu:
+   - „Obnoviť" — ak členstvo expiruje alebo je expirované (predĺži o 12 mesiacov).
+   - „Uhradiť pokutu" — ak má neuhradené pokuty (ADMIN, LIBRARIAN).
+   - „Zmeniť expiry" — manuálna zmena dátumu expirácie členstva (len ADMIN).
+5. Administrátor môže navyše odpísať (waive) pokutu.
+6. Detail člena zobrazí e-mail, rolu, stav členstva, aktívne výpožičky a pokuty.
 
 ---
 
@@ -523,6 +528,47 @@ Pri výpožičke sa nastaví dvojtýždňová lehota na vrátenie. Ak čitateľ 
 
 ---
 
+**UC18 — Manuálne spustenie plánovanej úlohy (admin job)**
+
+**Účel** Systém umožní administrátorovi manuálne spustiť ktorýkoľvek scheduled job.
+
+**Používateľ** Administrátor
+
+**Vstupné podmienky**
+- Administrátor je prihlásený v systéme.
+
+**Výstup**
+- Job sa vykoná okamžite a vráti výsledok (počet spracovaných záznamov, čas spustenia).
+
+**Postup**
+1. Administrátor otvorí stránku „Plánované úlohy".
+2. Systém zobrazí karty pre každý job s popisom a cron časom.
+3. Administrátor klikne na „Spustiť teraz" pri zvolenej úlohe.
+4. Systém vykoná job a zobrazí výsledok (počet spracovaných záznamov) alebo chybovú hlášku.
+
+---
+
+**UC19 — Admin override dátumov**
+
+**Účel** Systém umožní administrátorovi manuálne zmeniť dátumy výpožičiek, členstva a rezervácií pre účely recovery a debugovania.
+
+**Používateľ** Administrátor
+
+**Vstupné podmienky**
+- Administrátor je prihlásený v systéme.
+
+**Výstup**
+- Zmenený dátum na zvolenej entite.
+
+**Postup**
+1. Administrátor nájde výpožičku/člena/rezerváciu na príslušnej stránke.
+2. Klikne na „Zmeniť expiry" / „Zmeniť dueDate" / „Zmeniť createdOn".
+3. Systém zobrazí dialóg s pôvodným dátumom a poľom pre nový dátum.
+4. Administrátor zadá nový dátum a potvrdí.
+5. Systém validuje a uloží nový dátum. Ak zmena ovplyvní stav (napr. posun dueDate zruší OVERDUE), systém automaticky aktualizuje stav.
+
+---
+
 ## Architektúra
 
 Projekt dodržiava princípy **Domain-Driven Design (DDD)** a **hexagonálnej (porty & adaptéry) architektúry**.
@@ -551,8 +597,16 @@ fsa-isk/
     ├── outbound-repository-jpa/      ← JPA adaptér (Hibernate, PostgreSQL)
     │
     └── springboot/                   ← Composition root, Azure Blob storage, scheduled jobs
+        ├── controller             (AdminJobsController, AdminOverridesController)
         ├── storage                (AzureBlobPhotoStoragePort, NoopPhotoStoragePort)
-        └── jobs                   (MembershipExpiryNotificationJob — denný)
+        ├── notifications          (EmailNotificationPort — Thymeleaf šablóny)
+        └── jobs
+            ├── LoanStatusJob                    (23:55 — markuje OVERDUE výpožičky)
+            ├── FineAccrualJob                   (00:00 — vytvára/aktualizuje pokuty)
+            ├── ReservationExpirationJob         (00:05 — expiruje READY_FOR_PICKUP)
+            ├── MembershipExpiryNotificationJob  (00:10 — e-mail 7 dní pred expiráciou)
+            ├── LoanDueNotificationJob           (00:15 — e-mail 3 dni pred vrátením)
+            └── MembershipExpirationJob          (00:20 — markuje EXPIRED členstvá)
 ```
 
 **Kľúčové porty (interfaces v `domain.shared`):**
@@ -566,14 +620,16 @@ fsa-isk/
 
 ## Frontend
 
-Stack: **Angular 18+** (standalone components, signals, `@if`/`@for` control flow), **Bootstrap 5**, **SCSS**.
+Stack: **Angular 19+** (standalone components, `@if`/`@for` control flow), **vlastný CSS design systém**, **Vitest**.
 
 **Hlavné stránky:**
-- `/` — Domov: hero, member-account-bar (pre čitateľov), oznamy, vybrané knihy
-- `/catalog` — Katalóg s mriežkou/tabuľkou, chip filtre, search debounce, URL query params
-- `/announcements` — Verejne dostupné oznamy
-- `/loans`, `/reservations` — Pre staff všetky, pre membera vlastné
-- `/members` — Pre staff: stat-cards ako rýchle filtre (active/expired/with fines)
+- `/` — Domov: hero, member-account-bar (pre čitateľov), oznamy, vybrané knihy, štatistiky
+- `/catalog` — Katalóg s mriežkou/tabuľkou, chip filtre, search debounce, URL query params, paginacia
+- `/announcements` — Verejne dostupné oznamy s fotkami
+- `/loans` — Pre staff všetky, pre membera vlastné; tabs ACTIVE/OVERDUE/RETURNED, vrátenie, predĺženie
+- `/reservations` — Pre staff všetky, pre membera vlastné; cancel, status filtering
+- `/members` — Pre staff: stat-cards ako rýchle filtre (active/expired/with fines), obnova členstva, úhrada pokút
+- `/admin/jobs` — Admin-only: manuálne spúšťanie scheduled jobov s výsledkami
 
 **UX prvky:**
 - Vlastný `ConfirmDialog` namiesto natívnych `confirm()`/`alert()`/`prompt()`
@@ -591,6 +647,35 @@ Stack: **Angular 18+** (standalone components, signals, `@if`/`@for` control flo
 - Rolové pravidlá deklaratívne v `SecurityConfiguration.java`.
 - Identita aktuálneho čitateľa sa vždy odvodí z JWT claimov — frontend nikdy neposiela vlastný `memberId`/`createdById` pre vlastné operácie.
 - Pri prvom autentifikovanom dotaze sa MEMBER záznam automaticky vyrobí (`MemberProvisioningService`) — žiadny ručný registračný krok.
+
+---
+
+## Plánované úlohy (Scheduled Jobs)
+
+Všetky joby používajú **ShedLock** pre distribuovaný lock (len jedna inštancia beží v čase). Poradie behu je navrhnuté tak, aby statusy boli aktualizované pred výpočtom pokút.
+
+| Cron | Job | Popis |
+|---|---|---|
+| 23:55 | `LoanStatusJob` | Prejde nevrátené výpožičky a označí po termíne ako OVERDUE |
+| 00:00 | `FineAccrualJob` | Vytvorí/aktualizuje pokuty pre OVERDUE výpožičky (0,50 €/deň) |
+| 00:05 | `ReservationExpirationJob` | Expiruje READY_FOR_PICKUP rezervácie po 3 dňoch, notifikuje ďalšieho v rade |
+| 00:10 | `MembershipExpiryNotificationJob` | E-mail členom 7 dní pred expiráciou členstva |
+| 00:15 | `LoanDueNotificationJob` | E-mail čitateľom 3 dni pred koncom výpožičky |
+| 00:20 | `MembershipExpirationJob` | Označí členstvá po dátume expirácie ako EXPIRED |
+
+Všetky joby je možné spustiť manuálne cez admin panel (`/admin/jobs`) alebo priamo cez API (`POST /admin/jobs/{job-name}`).
+
+---
+
+## E-mailové notifikácie
+
+Notifikácie sa posielajú asynchrónne cez SMTP (Thymeleaf šablóny). Konfigurácia cez env premenné (`NOTIFICATIONS_EMAIL_ENABLED`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`).
+
+| Udalosť | Šablóna | Kedy |
+|---|---|---|
+| Rezervovaná kniha pripravená | `email/reservation-ready.html` | Keď sa uvoľní kópia pre čakajúceho v rade |
+| Blížiaca sa expirácia členstva | `email/membership-expiring.html` | 7 dní pred expiráciou (cron) |
+| Blížiaci sa koniec výpožičky | `email/loan-due.html` | 3 dni pred termínom vrátenia (cron) |
 
 ---
 

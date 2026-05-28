@@ -59,7 +59,8 @@ class FineAccrualJobTest {
     void accruesFineForOverdueLoanWhenNoneExists() {
         Loan overdue = new LoanFactory().createLoan(borrower, book, librarian,
                 LocalDate.now().minusDays(20), 14);  // 6 days overdue
-        when(loanRepository.findUnreturnedLoans()).thenReturn(List.of(overdue));
+        overdue.markOverdue();
+        when(loanRepository.findOverdueLoans()).thenReturn(List.of(overdue));
         when(fineRepository.findPendingByLoan(overdue)).thenReturn(Optional.empty());
 
         int processed = job.accrueOverdueFines();
@@ -70,15 +71,16 @@ class FineAccrualJobTest {
         List<Fine> fines = memberCaptor.getValue().getFines();
         assertEquals(1, fines.size());
         assertEquals(new BigDecimal("3.00"), fines.get(0).getAmount().getAmount());
-        verify(loanRepository).save(overdue);
+        verify(loanRepository, never()).save(any());
     }
 
     @Test
     void updatesExistingPendingFineInsteadOfCreatingNew() {
         Loan overdue = new LoanFactory().createLoan(borrower, book, librarian,
                 LocalDate.now().minusDays(25), 14);  // 11 days overdue
+        overdue.markOverdue();
         Fine existing = new Fine(Money.of(2.50, "EUR"), "stub", overdue);
-        when(loanRepository.findUnreturnedLoans()).thenReturn(List.of(overdue));
+        when(loanRepository.findOverdueLoans()).thenReturn(List.of(overdue));
         when(fineRepository.findPendingByLoan(overdue)).thenReturn(Optional.of(existing));
 
         job.accrueOverdueFines();
@@ -90,15 +92,12 @@ class FineAccrualJobTest {
     }
 
     @Test
-    void skipsLoansThatAreNotOverdue() {
-        Loan notOverdue = new LoanFactory().createLoan(borrower, book, librarian,
-                LocalDate.now().minusDays(2), 14);  // due in 12 days
-        when(loanRepository.findUnreturnedLoans()).thenReturn(List.of(notOverdue));
+    void skipsWhenNoOverdueLoans() {
+        when(loanRepository.findOverdueLoans()).thenReturn(List.of());
 
         int processed = job.accrueOverdueFines();
 
         assertEquals(0, processed);
         verifyNoInteractions(fineRepository, memberRepository);
-        verify(loanRepository, never()).save(any());
     }
 }
