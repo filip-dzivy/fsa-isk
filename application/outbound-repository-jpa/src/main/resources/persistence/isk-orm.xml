@@ -46,7 +46,8 @@
                 <column name="description" column-definition="TEXT"/>
             </basic>
             <one-to-many name="photos"
-                         target-entity="sk.posam.fsa.isk.domain.catalog.BookPhoto">
+                         target-entity="sk.posam.fsa.isk.domain.catalog.BookPhoto"
+                         orphan-removal="true">
                 <join-column name="book_id" nullable="false"/>
                 <cascade><cascade-all/></cascade>
                 <order-by>position ASC</order-by>
@@ -251,7 +252,8 @@
                 <join-column name="author_id" nullable="false"/>
             </many-to-one>
             <one-to-many name="photos"
-                         target-entity="sk.posam.fsa.isk.domain.announcement.AnnouncementPhoto">
+                         target-entity="sk.posam.fsa.isk.domain.announcement.AnnouncementPhoto"
+                         orphan-removal="true">
                 <join-column name="announcement_id" nullable="false"/>
                 <cascade><cascade-all/></cascade>
                 <order-by>position ASC</order-by>
