@@ -45,6 +45,11 @@ public final class Money {
         return amount.compareTo(BigDecimal.ZERO) > 0;
     }
 
+    public boolean isGreaterThan(Money other) {
+        assertSameCurrency(other);
+        return amount.compareTo(other.amount) > 0;
+    }
+
     private void assertSameCurrency(Money other) {
         if (!this.currency.equals(other.currency)) {
             throw new DomainException("Nemožno sčítať rôzne meny: " + currency + " a " + other.currency);

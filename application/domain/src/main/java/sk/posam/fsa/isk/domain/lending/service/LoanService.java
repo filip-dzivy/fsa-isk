@@ -145,6 +145,14 @@ public class LoanService implements LoanFacade{
     }
 
     @Override
+    @Transactional
+    public void changeDueDate(long loanId, java.time.LocalDate newDueDate) {
+        Loan loan = find(loanId);
+        loan.changeDueDate(newDueDate);
+        loanRepository.save(loan);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<Loan> findVisible(Member requestingMember, Long targetMemberId) {
         return memberVisibilityResolver.resolve(requestingMember, targetMemberId)

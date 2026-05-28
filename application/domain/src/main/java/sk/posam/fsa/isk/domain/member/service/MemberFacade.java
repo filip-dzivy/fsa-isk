@@ -20,6 +20,10 @@ public interface MemberFacade {
 
     void renewMembership(long id);
 
+    void changeMembershipExpiry(long memberId, java.time.LocalDate newExpiry);
+
+    int expireOverdueMemberships();
+
     void payFine(long memberId, long fineId);
 
     void waiveFine(long memberId, long fineId);

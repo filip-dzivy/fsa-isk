@@ -146,6 +146,14 @@ public class ReservationService implements ReservationFacade{
 
     @Override
     @Transactional
+    public void changeCreatedOn(long reservationId, java.time.LocalDate newCreatedOn) {
+        Reservation reservation = find(reservationId);
+        reservation.changeCreatedOn(newCreatedOn);
+        reservationRepository.save(reservation);
+    }
+
+    @Override
+    @Transactional
     public void fulfillReservation(Member member, Book book) {
         reservationRepository.findActiveByBook(book).stream()
                 .filter(r -> r.getCreatedBy().equals(member))

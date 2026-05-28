@@ -2,6 +2,8 @@ package sk.posam.fsa.isk.jobs;
 
 import jakarta.transaction.Transactional;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import sk.posam.fsa.isk.domain.finance.Fine;
@@ -13,8 +15,12 @@ import sk.posam.fsa.isk.domain.lending.LoanRepository;
 import sk.posam.fsa.isk.domain.member.Member;
 import sk.posam.fsa.isk.domain.member.MemberRepository;
 
+import java.util.List;
+
 @Component
 public class FineAccrualJob {
+
+    private static final Logger log = LoggerFactory.getLogger(FineAccrualJob.class);
 
     private final LoanRepository loanRepository;
     private final MemberRepository memberRepository;
@@ -34,13 +40,17 @@ public class FineAccrualJob {
         this.finesDailyRate = finesDailyRate;
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+    @Scheduled(cron = "0 0 0 * * *", zone = "Europe/Bratislava")
     @SchedulerLock(name = "accrueOverdueFines", lockAtLeastFor = "PT1M", lockAtMostFor = "PT15M")
     @Transactional
-    public void accrueOverdueFines() {
-        loanRepository.findUnreturnedLoans().stream()
+    public Integer accrueOverdueFines() {
+        List<Loan> overdue = loanRepository.findUnreturnedLoans().stream()
                 .filter(Loan::isOverdue)
-                .forEach(this::processLoan);
+                .toList();
+        log.info("FineAccrualJob: found {} overdue loans to process", overdue.size());
+        overdue.forEach(this::processLoan);
+        log.info("FineAccrualJob: processed {} overdue loans", overdue.size());
+        return overdue.size();
     }
 
     private void processLoan(Loan loan) {

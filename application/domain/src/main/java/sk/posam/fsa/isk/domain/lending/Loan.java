@@ -60,6 +60,24 @@ public class Loan {
         this.status = LoanStatus.RETURNED;
     }
 
+    public void changeDueDate(LocalDate newDueDate) {
+        require(newDueDate != null,
+                DomainException.Type.VALIDATION,
+                "Nový termín vrátenia nesmie byť null.");
+        require(!newDueDate.isBefore(loanDate),
+                DomainException.Type.VALIDATION,
+                "Nový termín nesmie byť pred dátumom výpožičky.");
+        require(status != LoanStatus.RETURNED,
+                DomainException.Type.CONFLICT,
+                "Vrátenú výpožičku nemožno upraviť.");
+        this.dueDate = newDueDate;
+        if (status == LoanStatus.OVERDUE && !isOverdue()) {
+            this.status = LoanStatus.ACTIVE;
+        } else if (status == LoanStatus.ACTIVE && isOverdue()) {
+            this.status = LoanStatus.OVERDUE;
+        }
+    }
+
     public void renew(Member requestedBy){
         require(IsActiveLoanPredicate.INSTANCE.test(this),
                 DomainException.Type.CONFLICT,

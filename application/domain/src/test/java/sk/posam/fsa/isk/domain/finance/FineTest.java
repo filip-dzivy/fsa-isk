@@ -92,4 +92,18 @@ public class FineTest {
         Fine fine = new Fine(AMOUNT, REASON);
         assertThrows(NullPointerException.class, () -> fine.updateAmount(null));
     }
+
+    @Test
+    void updateAmountIgnoresDecrease() {
+        Fine fine = new Fine(Money.of(5.00, "EUR"), REASON);
+        fine.updateAmount(Money.of(2.00, "EUR"));   // pokus o zníženie
+        assertEquals(Money.of(5.00, "EUR"), fine.getAmount());
+    }
+
+    @Test
+    void updateAmountIgnoresEqualValue() {
+        Fine fine = new Fine(Money.of(3.00, "EUR"), REASON);
+        fine.updateAmount(Money.of(3.00, "EUR"));   // rovnaká suma
+        assertEquals(Money.of(3.00, "EUR"), fine.getAmount());
+    }
 }

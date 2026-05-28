@@ -25,6 +25,8 @@ class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
+                        // Admin operational endpoints — manuálny trigger jobov + override dátumov pre debugovanie
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         // Books — verejné čítanie, ADMIN/LIBRARIAN write
                         .requestMatchers(HttpMethod.POST, "/books").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/books/*").hasRole("ADMIN")

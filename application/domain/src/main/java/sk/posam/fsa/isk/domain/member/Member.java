@@ -51,6 +51,23 @@ public class Member {
         this.membership = membership.renew();
     }
 
+    public void changeMembershipExpiry(java.time.LocalDate newExpiry) {
+        require(membership != null,
+                DomainException.Type.CONFLICT,
+                "Čitateľ nemá priradené členstvo.");
+        require(newExpiry != null,
+                DomainException.Type.VALIDATION,
+                "Nový dátum expirácie nesmie byť null.");
+        this.membership = membership.withExpiry(newExpiry);
+    }
+
+    public void markMembershipExpired() {
+        require(membership != null,
+                DomainException.Type.CONFLICT,
+                "Čitateľ nemá priradené členstvo.");
+        this.membership = membership.expired();
+    }
+
     public boolean hasUnpaidFines() {return fines.stream().anyMatch(f -> !f.isPaid());}
 
     public boolean canBorrow(){

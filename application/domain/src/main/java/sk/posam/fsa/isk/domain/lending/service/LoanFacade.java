@@ -6,6 +6,7 @@ import sk.posam.fsa.isk.domain.catalog.Book;
 import sk.posam.fsa.isk.domain.lending.Loan;
 import sk.posam.fsa.isk.domain.member.Member;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface LoanFacade {
@@ -25,4 +26,6 @@ public interface LoanFacade {
     public List<Loan> findAll();
 
     public List<Loan> findVisible(Member requestingMember, Long targetMemberId);
+
+    public void changeDueDate(long loanId, LocalDate newDueDate);
 }

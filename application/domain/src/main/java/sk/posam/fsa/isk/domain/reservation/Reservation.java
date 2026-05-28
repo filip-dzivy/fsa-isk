@@ -80,6 +80,20 @@ public class Reservation {
         this.status = ReservationStatus.FULFILLED;
     }
 
+    public void changeCreatedOn(LocalDate newCreatedOn) {
+        require(newCreatedOn != null,
+                DomainException.Type.VALIDATION,
+                "Dátum vytvorenia nesmie byť null.");
+        require(!newCreatedOn.isAfter(LocalDate.now()),
+                DomainException.Type.VALIDATION,
+                "Dátum vytvorenia nemôže byť v budúcnosti.");
+        require(status != ReservationStatus.CANCELLED
+                        && status != ReservationStatus.FULFILLED,
+                DomainException.Type.CONFLICT,
+                "Rezerváciu v stave " + status + " nemožno upraviť.");
+        this.createdOn = newCreatedOn;
+    }
+
     public boolean isExpiredByDate() {
         return IsReadyForPickupPredicate.INSTANCE.test(this)
                 && LocalDate.now().isAfter(createdOn.plusDays(PICKUP_WINDOW_DAYS));

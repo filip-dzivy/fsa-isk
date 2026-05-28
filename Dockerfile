@@ -15,6 +15,12 @@ RUN mkdir build && cd build && java -Djarmode=layertools -jar ../application/spr
 FROM eclipse-temurin:25-jdk-alpine
 WORKDIR /application
 
+# Timezone
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Europe/Bratislava /etc/localtime && \
+    echo "Europe/Bratislava" > /etc/timezone
+ENV TZ=Europe/Bratislava
+
 # TODO: na --from=builder pls review
 COPY --from=builder application/build/dependencies/ ./
 COPY --from=builder application/build/spring-boot-loader/ ./

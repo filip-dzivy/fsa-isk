@@ -32,4 +32,6 @@ public interface ReservationFacade {
 
     public List<Reservation> findVisible(Member requestingMember, Long targetMemberId);
 
+    public void changeCreatedOn(long reservationId, java.time.LocalDate newCreatedOn);
+
 }

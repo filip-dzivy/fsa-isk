@@ -82,6 +82,31 @@ public class MemberService implements MemberFacade {
 
     @Override
     @Transactional
+    public void changeMembershipExpiry(long memberId, java.time.LocalDate newExpiry) {
+        Member member = find(memberId);
+        member.changeMembershipExpiry(newExpiry);
+        memberRepository.save(member);
+    }
+
+    @Override
+    @Transactional
+    public int expireOverdueMemberships() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        int count = 0;
+        for (Member member : memberRepository.findAll()) {
+            Membership m = member.getMembership();
+            if (m == null || m.getExpiryDate() == null) continue;
+            if (m.isActive() && m.getExpiryDate().isBefore(today)) {
+                member.markMembershipExpired();
+                memberRepository.save(member);
+                count++;
+            }
+        }
+        return count;
+    }
+
+    @Override
+    @Transactional
     public void payFine(long memberId, long fineId) {
         Member member = find(memberId);
         Fine fine = member.getFines().stream()

@@ -38,6 +38,18 @@ public final class Membership {
         return new Membership(base.plusMonths(RENEWAL_MONTHS), MembershipStatus.ACTIVE);
     }
 
+    public Membership withExpiry(LocalDate newExpiry) {
+        Objects.requireNonNull(newExpiry);
+        MembershipStatus newStatus = newExpiry.isBefore(LocalDate.now())
+                ? MembershipStatus.EXPIRED
+                : MembershipStatus.ACTIVE;
+        return new Membership(newExpiry, newStatus);
+    }
+
+    public Membership expired() {
+        return new Membership(expiryDate, MembershipStatus.EXPIRED);
+    }
+
     public boolean isActive() {
         return status == MembershipStatus.ACTIVE;
     }

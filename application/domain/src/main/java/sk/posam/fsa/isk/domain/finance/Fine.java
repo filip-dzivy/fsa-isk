@@ -58,6 +58,9 @@ public class Fine {
         Objects.requireNonNull(newAmount);
         if (!newAmount.isGreaterThanZero())
             throw new DomainException("Suma musí byť kladná.");
+        if (!newAmount.isGreaterThan(this.amount)) {
+            return;
+        }
         this.amount = newAmount;
     }
 
