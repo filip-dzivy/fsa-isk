@@ -18,7 +18,6 @@ import sk.posam.fsa.isk.domain.lending.LoanFactory;
 import sk.posam.fsa.isk.domain.lending.LoanRepository;
 import sk.posam.fsa.isk.domain.member.Email;
 import sk.posam.fsa.isk.domain.member.Member;
-import sk.posam.fsa.isk.domain.member.MemberRepository;
 import sk.posam.fsa.isk.domain.member.MemberRole;
 
 import java.math.BigDecimal;
@@ -35,7 +34,6 @@ import static org.mockito.Mockito.*;
 class FineAccrualJobTest {
 
     @Mock LoanRepository loanRepository;
-    @Mock MemberRepository memberRepository;
     @Mock FineRepository fineRepository;
 
     private FineAccrualJob job;
@@ -47,7 +45,7 @@ class FineAccrualJobTest {
     @BeforeEach
     void setUp() {
         FineFactory fineFactory = new FineFactory();
-        job = new FineAccrualJob(loanRepository, memberRepository, fineRepository, fineFactory, dailyRate);
+        job = new FineAccrualJob(loanRepository, fineRepository, fineFactory, dailyRate);
 
         borrower = new Member(1L, new Email("jan@example.sk"), "Jan", "Novak", MemberRole.MEMBER);
         librarian = new Member(2L, new Email("lib@example.sk"), "Lib", "Rar", MemberRole.LIBRARIAN);
@@ -66,12 +64,9 @@ class FineAccrualJobTest {
         int processed = job.accrueOverdueFines();
 
         assertEquals(1, processed);
-        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
-        verify(memberRepository).save(memberCaptor.capture());
-        List<Fine> fines = memberCaptor.getValue().getFines();
-        assertEquals(1, fines.size());
-        assertEquals(new BigDecimal("3.00"), fines.get(0).getAmount().getAmount());
-        verify(loanRepository, never()).save(any());
+        ArgumentCaptor<Fine> fineCaptor = ArgumentCaptor.forClass(Fine.class);
+        verify(fineRepository).save(fineCaptor.capture());
+        assertEquals(new BigDecimal("3.00"), fineCaptor.getValue().getAmount().getAmount());
     }
 
     @Test
@@ -85,10 +80,8 @@ class FineAccrualJobTest {
 
         job.accrueOverdueFines();
 
-        // existing fine should be recalculated to 11 * 0.50 = 5.50
         assertEquals(new BigDecimal("5.50"), existing.getAmount().getAmount());
         verify(fineRepository).save(existing);
-        verify(memberRepository, never()).save(any());
     }
 
     @Test
@@ -98,6 +91,6 @@ class FineAccrualJobTest {
         int processed = job.accrueOverdueFines();
 
         assertEquals(0, processed);
-        verifyNoInteractions(fineRepository, memberRepository);
+        verifyNoInteractions(fineRepository);
     }
 }
